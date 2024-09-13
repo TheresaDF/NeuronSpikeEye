@@ -1,2 +1,6 @@
+# folders 
 data/* 
 src.egg-info/*
+
+# files 
+brainstorm.ipynb 
