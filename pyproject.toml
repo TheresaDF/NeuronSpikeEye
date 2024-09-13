@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "src"
 version = "0.0.1"
-description = "Generate cats using a VAE"
+description = "Working with neuron spiked porcupine eyes"
 authors = [
   { name = "Theresa", email = "s194329@student.dtu.dk" },
 ]
