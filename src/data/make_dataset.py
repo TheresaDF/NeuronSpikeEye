@@ -4,13 +4,8 @@ import pickle
 import numpy as np 
 from utils import *
 from tqdm import tqdm 
-from typing import dict    
-from scipy.fft import fft, fftfreq, ifft
 from scipy.signal import find_peaks, fftconvolve
-from matplotlib import pyplot as plt 
-import seaborn as sns 
 
-sns.set_theme()
 
 def read_data(eye: int, data_type : str) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: 
     """ Function reads all raw files for certain eye and type"""
@@ -19,9 +14,9 @@ def read_data(eye: int, data_type : str) -> tuple[np.ndarray, np.ndarray, np.nda
     paths = glob.glob(os.path.join("data/raw/", data_type, "Eye " + str(eye+1), "*.ns5"))
     
     # read data
-    data_stim, _ = read_ns5_file(paths[0])
-    data_ttx, _ = read_ns5_file(paths[1])
-    data_spon, _ = read_ns5_file(paths[2])
+    _, data_stim = read_ns5_file(paths[0])
+    _, data_ttx = read_ns5_file(paths[1])
+    _, data_spon = read_ns5_file(paths[2])
 
     return data_stim, data_ttx, data_spon
 
@@ -69,17 +64,18 @@ def bin_data(data : np.ndarray, data_type : str, spike = None) -> np.ndarray:
 
     # detect peaks 
     if data_type == "2D":
-        peaks = find_peaks(data, distance = 2200, height = 300)
+        peaks, _ = find_peaks(data, distance = 2200, height = 300)
     else:
         peaks = locate_peaks_3d(data, spike)
     
     # there should be a 100 peaks 
-    assert len(peaks) == 100
+    print(len(peaks))
+    assert len(peaks) == 100 
 
     # break up into segments based on spike location 
     segments = np.zeros((3000-33-100, 100))
     for i in range(100):
-        segments[:, i] = data[peaks[i]-33:peaks[i]+100]
+        segments[:, i] = data[peaks[i]+100:peaks[i]+2967]
 
     return segments 
 
@@ -117,6 +113,7 @@ def pre_process() -> None:
 
         # loop over channels
         for channel in range(32):
+            print(f"Channel {channel+1}/32")
             # bin 2D data 
             segments_stim = bin_data(stim_2[:, channel], '2D')
             segments_ttx = bin_data(ttx_2[:, channel], '2D')
@@ -140,18 +137,10 @@ def pre_process() -> None:
             d_ttx['3D']['Eye ' + str(eye+1)][channel] = segments_ttx
             d_spon['3D']['Eye ' + str(eye+1)][channel] = segments_spon
 
-    with open('data/processed/stimulation.pkl', 'wb') as f:
-        pickle.dump(d_stim, f)      
-    f.close()
-
-    with open('data/processed/spontaneous.pkl', 'wb') as f:
-        pickle.dump(d_spon, f)      
-    f.close()
-
-    with open('data/processed/ttx.pkl', 'wb') as f:
-        pickle.dump(d_ttx, f)      
-    f.close()
-
+    # save results 
+    with open('data/processed/stimulation.pkl', 'wb') as f: pickle.dump(d_stim, f); f.close()
+    with open('data/processed/spontaneous.pkl', 'wb') as f: pickle.dump(d_spon, f); f.close()
+    with open('data/processed/ttx.pkl', 'wb') as f: pickle.dump(d_ttx, f); f.close()
 
 
 if __name__ == "__main__":
