@@ -1,4 +1,9 @@
 import neo 
+import glob
+import os 
+import numpy as np 
+from scipy.signal import find_peaks, fftconvolve
+
 
 def read_ns5_file(filename):
     """ Function to read files of .ns5 format and return the data and time values."""
@@ -7,3 +12,91 @@ def read_ns5_file(filename):
     data = reader.read_block(0).segments[0].analogsignals[0].magnitude
 
     return times, data
+
+def read_data(eye: int, data_type : str) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: 
+    """ Function reads all raw files for certain eye and type"""
+    
+    # get path to data files 
+    paths = glob.glob(os.path.join("data/raw/", data_type, "Eye " + str(eye+1), "*.ns5"))
+    
+    # read data
+    _, data_stim = read_ns5_file(paths[0])
+    _, data_ttx = read_ns5_file(paths[1])
+    _, data_spon = read_ns5_file(paths[2])
+
+    return data_stim, data_ttx, data_spon
+
+def get_spike(data : np.ndarray) -> np.ndarray:
+    """Get spike from 'clean' 2D data """   
+    # get spike from 2D data where they are pronounced 
+    
+    stim_peak = np.argmax(data)
+    spike = data[stim_peak-33:stim_peak+100] 
+
+    # mirror peak and zero pad 
+    peak_mirror = np.r_[np.flip(spike), np.zeros(3000-33-100)]
+
+    return peak_mirror   
+
+def locate_peaks(data_3d : np.ndarray, spike : np.ndarray) -> np.ndarray:
+    """Function locates peaks in 3D by using matched filtering"""
+    
+    # repeat spike 100 times
+    filter = np.array([spike for _ in range(100)]).reshape(-1)
+
+    # convolve with the 3D data
+    conv = fftconvolve(data_3d, filter / np.sum(filter), mode = "same")
+
+    # find peaks 
+    dist = 2200 
+    peaks = []
+    while len(peaks) != 100:
+        peaks, _ = find_peaks(conv, distance=dist, height = 200)
+        dist += 10 
+
+    # there should be a 100 peaks
+    assert len(peaks) == 100 
+    return peaks 
+
+def bin_spon(spon_data: np.ndarray) -> np.ndarray:
+    """Function bins spontaneous data"""
+
+    # number of datapoints if we didvide into a 100 segments 
+    n = len(spon_data)
+    length = int(n / 100 )
+
+    # divide in segments 
+    segments = np.zeros((length, 100))
+    for i in range(100):
+        segments[:, i] = spon_data[i*length:(i+1)*length]
+
+    return segments
+
+def bin_data(data : np.ndarray, spike = np.ndarray) -> np.ndarray:
+    """Function bins data based on peak locations"""
+
+    # detect peaks             
+    peaks = locate_peaks(data, spike)
+    
+    # there should be a 100 peaks 
+    assert len(peaks) == 100 
+
+    # break up into segments based on spike location 
+    segments = np.zeros((3000-33-100, 100))
+    for i in range(100):
+        if (i == 99 ):
+            points_left = len(data) - peaks[i] - 100
+            segments[:points_left, i] = data[peaks[i]+100:peaks[i]+100+points_left]
+        else: 
+            segments[:, i] = data[peaks[i]+100:peaks[i]+2967]
+
+    return segments 
+
+def add_to_dictionary(eye : int, d : dict[str, str]) -> dict[str, str]:
+    """Function initializes dictionaries to save data"""
+
+    # add eye to dict 
+    d['2D'] = {'Eye ' + str(eye+1) :  np.array([{} for _ in range(32)])}
+    d['3D'] = {'Eye ' + str(eye+1) :  np.array([{} for _ in range(32)])}
+
+    return d 
