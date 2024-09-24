@@ -1,0 +1,8 @@
+numpy >= 1.26.4
+scipy >=1.14.1
+seaborn >= 0.13.2
+matplotlib >= 3.9.2
+neo >= 0.13.3
+ipympl >= 0.9.4
+ipykernel >= 6.29.5 
+tqdm >= 4.66.5
