@@ -13,6 +13,11 @@ def pre_process() -> None:
 
     # loop over eyes 
     for eye in tqdm(range(6)):
+        ############# Bad fix for now #############
+        if (eye == 3): 
+                continue 
+        ###########################################
+
         # add eye to dictionaries 
         d_stim = add_to_dictionary(eye, d_stim)
         d_ttx = add_to_dictionary(eye, d_ttx)
@@ -33,10 +38,6 @@ def pre_process() -> None:
         # loop over channels
         for channel in range(32):
             print(f"Channel {channel+1}/32")
-            ############# Bad fix for now #############
-            if (eye == 3): 
-                continue 
-            ###########################################
 
             # bin 2D data 
             segments_stim = bin_data(stim_2[:, channel], spike = spike)

@@ -31,10 +31,10 @@ def get_spike(data : np.ndarray) -> np.ndarray:
     # get spike from 2D data where they are pronounced 
     
     stim_peak = np.argmax(data)
-    spike = data[stim_peak-33:stim_peak+100] 
+    spike = data[stim_peak-40:stim_peak+100] 
 
     # mirror peak and zero pad 
-    peak_mirror = np.r_[np.flip(spike), np.zeros(3000-33-100)]
+    peak_mirror = np.r_[np.flip(spike), np.zeros(3000-140)]
 
     return peak_mirror   
 
@@ -82,13 +82,13 @@ def bin_data(data : np.ndarray, spike = np.ndarray) -> np.ndarray:
     assert len(peaks) == 100 
 
     # break up into segments based on spike location 
-    segments = np.zeros((3000-33-100, 100))
-    for i in range(100):
-        if (i == 99 ):
-            points_left = len(data) - peaks[i] - 100
-            segments[:points_left, i] = data[peaks[i]+100:peaks[i]+100+points_left]
+    segments = np.zeros((2400, 100))
+    for i in range(100):    
+        if (i == 99 ) & (len(data) - peaks[i] - 300 < 2400):
+            points_left = len(data) - peaks[i] - 300 
+            segments[:points_left, i] = data[peaks[i]+300:peaks[i]+300+points_left]
         else: 
-            segments[:, i] = data[peaks[i]+100:peaks[i]+2967]
+            segments[:, i] = data[peaks[i]+300:peaks[i]+2700]
 
     return segments 
 
@@ -96,7 +96,11 @@ def add_to_dictionary(eye : int, d : dict[str, str]) -> dict[str, str]:
     """Function initializes dictionaries to save data"""
 
     # add eye to dict 
-    d['2D'] = {'Eye ' + str(eye+1) :  np.array([{} for _ in range(32)])}
-    d['3D'] = {'Eye ' + str(eye+1) :  np.array([{} for _ in range(32)])}
+    if len(d) == 0: 
+        d['2D'] = {'Eye ' + str(eye+1) :  np.array([{} for _ in range(32)])}
+        d['3D'] = {'Eye ' + str(eye+1) :  np.array([{} for _ in range(32)])}
+    else: 
+        d['2D']['Eye ' + str(eye + 1)] = np.array([{} for _ in range(32)])
+        d['3D']['Eye ' + str(eye + 1)] = np.array([{} for _ in range(32)])
 
     return d 
