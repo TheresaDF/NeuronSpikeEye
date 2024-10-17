@@ -3,9 +3,10 @@ import glob
 import os 
 import numpy as np 
 from scipy.signal import find_peaks, fftconvolve
+from scipy.fft import fft, fftfreq, ifft
 
 
-def read_ns5_file(filename):
+def read_ns5_file(filename : str) -> tuple[np.ndarray, np.ndarray]:
     """ Function to read files of .ns5 format and return the data and time values."""
     reader = neo.io.BlackrockIO(filename = filename, verbose = True)
     times = reader.read_block(0).segments[0].analogsignals[0].times 
@@ -104,3 +105,21 @@ def add_to_dictionary(eye : int, d : dict[str, str]) -> dict[str, str]:
         d['3D']['Eye ' + str(eye + 1)] = np.array([{} for _ in range(32)])
 
     return d 
+
+def time_to_freq(data : np.ndarray, sample_rate : int = 3*1e4) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Function to convert time domain data to frequency domain data
+    """
+    duration = len(data) / sample_rate
+    N  = int(sample_rate * duration)
+    yf = fft(data)
+    xf = fftfreq(N, 1 / sample_rate)
+
+    return xf, yf 
+
+def freq_to_time(yf : np.ndarray) -> np.ndarray:
+    """
+    Function to convert frequency domain data to time domain data
+    """
+    ifft_data = ifft(yf)
+    return ifft_data
