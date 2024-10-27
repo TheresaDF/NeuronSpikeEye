@@ -29,6 +29,12 @@ def get_eye(eye: int, data_type : str) -> tuple[np.ndarray, np.ndarray, np.ndarr
 
     return data_stim, data_ttx, data_spon
 
+def get_simulated_data(path : str = "data/simulated/10_30_lognormal.npy") -> np.ndarray:
+    """ Function returns simulated data"""
+
+    return np.load(path)
+
+
 def get_df(data: np.ndarray) -> tuple[float, float]:
     """ Function calculates dominant frequency of data"""
 
@@ -85,6 +91,15 @@ def get_statistics(eye: int, data_type: str) -> dict:
         "spon": statistics(data_spon)
     }
 
+def get_statistics_simulated() -> dict:
+    """ Function calculates statistics for all data types of certain eye"""
+
+    data_simulated = get_simulated_data()
+
+    return {
+        "simulated": statistics(data_simulated)
+    }
+
 def get_all_statistics(electrode : str, data_type : str, ramp : int) -> dict:
     """ Function calculates statistics for all eyes and data types"""
     if data_type == "ramp":
@@ -95,6 +110,10 @@ def get_all_statistics(electrode : str, data_type : str, ramp : int) -> dict:
             "ramp4": get_statistics_ramp(3, ramp),
             "ramp5": get_statistics_ramp(4, ramp),
             "ramp6": get_statistics_ramp(5, ramp)
+        }
+    elif data_type == "simulated":
+        return { 
+            "sim1": get_statistics_simulated()
         }
     else: 
         return {
@@ -124,8 +143,8 @@ def print_statistics(electrode : str = "2D", data_type : str = "spon", ramp : in
 
 if __name__ == "__main__":
     # # # # # Choose parameters # # # # #
-    electrode = "3D" # "2D" or "3D"
-    data_type = "spon" # "stim", "ttx" or "spon" or "ramp"
+    electrode = "2D" # "2D" or "3D"
+    data_type = "stim" # "stim", "ttx" or "spon",  "ramp", "simulated"
     ramp = None # 0 to 13 (only used if data_type = "ramp")
 
     print_statistics(electrode = electrode, data_type=data_type, ramp = ramp)
