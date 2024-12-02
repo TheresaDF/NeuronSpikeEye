@@ -13,7 +13,7 @@ mkdir -p "logs/"
 
 ### General options
 ### –- specify queue --
-#BSUB -q gpuv100
+#BSUB -q hpc
 ### -- set the job Name --
 #BSUB -J preprocessing
 ### -- ask for number of cores (default: 1) -- 
