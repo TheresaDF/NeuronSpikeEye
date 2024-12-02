@@ -6,3 +6,4 @@ neo >= 0.13.3
 ipympl >= 0.9.4
 ipykernel >= 6.29.5 
 tqdm >= 4.66.5
+scikit-learn >= 1.5.2 
