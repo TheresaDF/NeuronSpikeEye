@@ -12,7 +12,7 @@ fi
 
 
 ### Make python environment
-module load python3/3.8.9 # only use if on HPC
+module load python3/3.12 # only use if on HPC
 python3 -m venv $env_name
 
 # source AutoVC-env/bin/activate

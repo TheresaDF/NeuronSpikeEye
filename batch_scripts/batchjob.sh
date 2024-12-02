@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #  assert correct run dir
-run_dir="src"
+run_dir="NEURONSPIKEEYE"
 if ! [ "$(basename $PWD)" = $run_dir ];
 then
     echo -e "\033[0;31mScript must be submitted from the directory: $run_dir\033[0m"
@@ -18,8 +18,6 @@ mkdir -p "logs/"
 #BSUB -J preprocessing
 ### -- ask for number of cores (default: 1) -- 
 #BSUB -n 1 
-### -- Select the resources: 1 gpu in exclusive process mode --
-#BSUB -gpu "num=1:mode=exclusive_process"
 ### -- set walltime limit: hh:mm --  maximum 24 hours for GPU-queues right now 
 #BSUB -W 7:00
 ### -- request 5GB of system-memory --
@@ -39,7 +37,7 @@ mkdir -p "logs/"
 # activate env
 
 # load additional modules
-module load cuda/11.4
+# module load cuda/11.4
 
 # run scripts
 python src/data/preprocess_data.py
