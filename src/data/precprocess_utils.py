@@ -1,9 +1,7 @@
-from scipy.signal import find_peaks
 from matplotlib import pyplot as plt 
 import numpy as np
 from scipy.fft import fft, fftfreq, ifft 
 from sklearn.decomposition import FastICA  
-from scipy.signal import iirnotch, lfilter
 from sklearn.cluster import KMeans
 
 def time_to_freq(data, sample_rate = 3*1e4):
