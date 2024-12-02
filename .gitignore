@@ -2,7 +2,7 @@
 data/* 
 src.egg-info/*
 notebooks/*
-src/data/removePLI-master/*
+neuron_spike/*
 
 # files 
 *.pyc
