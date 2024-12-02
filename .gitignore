@@ -3,6 +3,7 @@ data/*
 src.egg-info/*
 notebooks/*
 neuron_spike/*
+logs/* 
 
 # files 
 *.pyc
