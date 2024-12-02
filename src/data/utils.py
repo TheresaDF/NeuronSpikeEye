@@ -6,6 +6,7 @@ from scipy.signal import find_peaks, fftconvolve
 from scipy.fft import fft, fftfreq, ifft
 
 
+
 def read_ns5_file(filename : str) -> tuple[np.ndarray, np.ndarray]:
     """ Function to read files of .ns5 format and return the data and time values."""
     reader = neo.io.BlackrockIO(filename = filename, verbose = True)
@@ -123,3 +124,5 @@ def freq_to_time(yf : np.ndarray) -> np.ndarray:
     """
     ifft_data = ifft(yf)
     return ifft_data
+
+

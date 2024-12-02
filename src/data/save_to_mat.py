@@ -56,9 +56,9 @@ def save_to_mat() -> None:
             TTX_all[eye] = TTX 
             spon_all[eye] = spon 
 
-        savemat("data/mat_files/raw/" + dt + "_stim.mat", {dt + "stim": stim_all})
-        savemat("data/mat_files/raw/" + dt + "_TTX.mat", {dt + "TTX": TTX_all}) 
-        savemat("data/mat_files/raw/" + dt + "_spon.mat", {dt + "spon": spon_all})
+        savemat("data/mat_files/raw/" + dt + "_stim.mat", {"stim" + dt: stim_all})
+        savemat("data/mat_files/raw/" + dt + "_TTX.mat", {"TTX" + dt: TTX_all}) 
+        savemat("data/mat_files/raw/" + dt + "_spon.mat", {"spon" + dt: spon_all})
     
     
     # save the ramp data 

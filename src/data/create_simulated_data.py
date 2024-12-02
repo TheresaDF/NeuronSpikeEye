@@ -6,10 +6,10 @@ from scipy.stats import norm, lognorm, beta
 from scipy.ndimage import gaussian_filter1d
 from scipy.interpolate import interp1d
 import os 
-    
+
 sns.set_theme()
-os.chdir("src/data/")
-print(os.getcwd())
+    
+
 
 class SimulateData:
     def __init__(self, noise : list[float, float, float] = [200, 1, 10],
@@ -38,7 +38,7 @@ class SimulateData:
         self.num_stims = None 
         
         self.length = 300300
-        self.num_channels = 32 
+        self.num_channels = 2 
         self.fs = 3*1e4
         self.duration = self.length // self.fs 
         self.num_stims = int(self.duration * self.stim_freq)
@@ -47,9 +47,14 @@ class SimulateData:
         """ Initialize the base signal with a sinusoidal signal"""
 
         self.signal = np.zeros((self.length, self.num_channels))
-        x = np.sin(2 * np.pi * 350 * np.linspace(0, self.duration, self.length)) * 3 
+        x = np.sin(2 * np.pi * 350 * np.linspace(0, self.duration, self.length)) * 0.1
         for channel in range(self.num_channels):
-            self.signal[:, channel] = np.convolve(x + np.random.normal(0, 0.5, self.length)*300, np.ones(20)/20, mode='same')
+            # tmp = x + np.random.normal(0, 0.5, self.length)*300
+            # tmp = x + np.random.normal(-0.5, 0.5, self.length)*300
+            # signal_spike = np.array([0 if i % 20 else np.random.choice([-1, 1]) for i in range(self.length)]) * 500
+
+            tmp = x + np.random.normal(0, 0.5, self.length)*300
+            self.signal[:, channel] = np.convolve(tmp , np.ones(15)/15, mode='same') 
     
     def add_noise_pli(self):
         """Add power line interference noise to the signal"""
@@ -64,6 +69,10 @@ class SimulateData:
                 spike_ = spike 
                 self.signal[hertz_20_ms * i: (hertz_20_ms * i + len(spike)), channel] += spike_ #  * np.random.randint(8, 12, 1)[0] / 10  
                 self.signal[hertz_20_ms * i- hertz_20_ms //2 : (hertz_20_ms * i + len(spike) - hertz_20_ms // 2), channel] -= spike_ #  * np.random.randint(8, 12, 1)[0] / 10  
+
+                # add spike after PLI of smaller magnitude 
+                self.signal[hertz_20_ms * i + 50: (hertz_20_ms * i + len(spike) + 50), channel] += spike_ * 0.5
+                self.signal[hertz_20_ms * i + 50 - hertz_20_ms //2 : (hertz_20_ms * i + len(spike) + 50 - hertz_20_ms // 2), channel] -= spike_ * 0.5
 
     def add_noise_pli2(self) -> None:
         """ Add power line interference noise to the signal"""
@@ -316,10 +325,14 @@ class SimulateData:
         self.add_CAP()
 
         # noise 
-        self.add_noise_pli()
         self.add_noise_500_hz()
         self.add_noise_gauss()
+        self.add_noise_pli()
         self.add_noise_high_freq()   
+
+        # subtract mean from each channel 
+        for channel in range(self.num_channels):
+            self.signal[:, channel] -= np.mean(self.signal[:, channel])
 
 
     def time_to_freq(self, data : np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -365,8 +378,14 @@ def save_data(data : np.ndarray, name : str) -> None:
     np.save(name, data)
 
 if __name__ == "__main__":
-    simulator = SimulateData([200, 1, 1], stim_freq=10, CAP_amp=30, CAP_dist="lognormal")
+    # change direcotry to data
+    os.chdir("src/data/")
+    print(os.getcwd())
+
+
+    simulator = SimulateData([200, 1, 0.5], stim_freq=10, CAP_amp=30, CAP_dist="lognormal")
     simulator.construct_signal()
 
     # save data
-    save_data(simulator.signal, "../../data/simulated/10_30_lognormal.npy")
+    # save_data(simulator.signal, "../../data/simulated/10_30_lognormal.npy")
+    simulator.plot_data((0, 1))  # Plot the first two channels

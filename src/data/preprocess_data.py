@@ -8,8 +8,6 @@ import glob
 
 
 
-
-
 def pre_process() -> None:
     
     # initialize dictionaries for stim, TTX and spon
@@ -49,22 +47,18 @@ def pre_process() -> None:
             
             for channel in range(32):
                 print(f"Channel {channel+1}/32")
-
+    
                 # preprocess data 
-                data_stim_processed = remove_spike_segment(data_stim[:, channel])
-                data_ttx_processed = remove_spike_segment(data_ttx[:, channel])
+                data_stim_processed = filter(data_stim[:, channel])
+                data_ttx_processed = filter(data_ttx[:, channel])
 
-                # bin 2D data 
+                # bin data 
                 segments_spon = bin_spon(data_spon[:, channel])
 
                 # save to dictionary 
                 d_stim[electrode]['Eye ' + str(eye+1)][channel] = data_stim_processed
                 d_ttx[electrode]['Eye ' + str(eye+1)][channel] = data_ttx_processed
                 d_spon[electrode]['Eye ' + str(eye+1)][channel] = segments_spon
-
-
-
-
 
 
 
