@@ -1,6 +1,40 @@
+# This script reads the preprocessed data, and bins it into segments without the stimulation artefacts 
+
 import pickle 
-from utils import *
+from src.data.dataset_utils import *
 from tqdm import tqdm 
+
+
+# 2D and 3D 
+problem_channels = {
+    "2D": {
+        "Eye 1": {"Stim": [5, 6, 18, 21, 25], "TTX": []},
+        "Eye 2": {"Stim": [6, 11, 21], "TTX": []},
+        "Eye 3": {"Stim": [6, 11, 21], "TTX": []},
+        "Eye 4": {"Stim": [18, 22, 24, 26, 28, 30], "TTX": list(range(32))},
+        "Eye 5": {"Stim": [9], "TTX": []},
+        "Eye 6": {"Stim": [5, 6], "TTX": []},
+    },
+    "3D": {
+        "Eye 1": {"Stim": [], "TTX": []},
+        "Eye 2": {"Stim": [], "TTX": []},
+        "Eye 3": {"Stim": [], "TTX": []},
+        "Eye 4": {"Stim": [], "TTX": []},
+        "Eye 5": {"Stim": [], "TTX": []},
+        "Eye 6": {"Stim": [], "TTX": []},
+    }
+}
+
+# ramp 
+problem_channels = {
+        "Eye 1": {"num_stims": [(4, 101), (10, 101)], "channel6": [1, 2, 3, 4, 5, 6, 7], "channel7": [], "extra_stim" : [(9, 6.11)]},
+        "Eye 2": {"num_stims": [(2, 101)], "channel6": list(range(32)), "channel7": [], "extra_stim" : [(2, 9.67, 5, 6.65)]},
+        "Eye 3": {"num_stims": [], "channel6": [], "channel7": [], "extra_stim" : []},
+        "Eye 4": {"num_stims": [], "channel6": [], "channel7": [], "extra_stim" : []},
+        "Eye 5": {"num_stims": [], "channel6": [], "channel7": [], "extra_stim" : []},
+        "Eye 6": {"num_stims": [], "channel6": [], "channel7": [], "extra_stim" : []},
+        } 
+
 
 
 def pre_process() -> None:

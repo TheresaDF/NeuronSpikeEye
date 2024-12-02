@@ -28,6 +28,17 @@ def read_data(eye: int, data_type : str) -> tuple[np.ndarray, np.ndarray, np.nda
 
     return data_stim, data_ttx, data_spon
 
+def read_ramp(eye : int, ramp : int) -> np.ndarray:
+    """ Function reads ramp data for certain eye"""
+    
+    # get path to data files 
+    paths = sorted(glob.glob(os.path.join("data/raw/Ramp data/Eye " + str(eye+1), "*.ns5")), key = len)
+
+    # read data
+    _, data = read_ns5_file(paths[ramp])
+
+    return data
+
 def get_spike(data : np.ndarray) -> np.ndarray:
     """Get spike from 'clean' 2D data """   
     # get spike from 2D data where they are pronounced 
@@ -106,23 +117,5 @@ def add_to_dictionary(eye : int, d : dict[str, str]) -> dict[str, str]:
         d['3D']['Eye ' + str(eye + 1)] = np.array([{} for _ in range(32)])
 
     return d 
-
-def time_to_freq(data : np.ndarray, sample_rate : int = 3*1e4) -> tuple[np.ndarray, np.ndarray]:
-    """
-    Function to convert time domain data to frequency domain data
-    """
-    duration = len(data) / sample_rate
-    N  = int(sample_rate * duration)
-    yf = fft(data)
-    xf = fftfreq(N, 1 / sample_rate)
-
-    return xf, yf 
-
-def freq_to_time(yf : np.ndarray) -> np.ndarray:
-    """
-    Function to convert frequency domain data to time domain data
-    """
-    ifft_data = ifft(yf)
-    return ifft_data
 
 

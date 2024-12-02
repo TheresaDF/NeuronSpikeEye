@@ -1,4 +1,4 @@
-from src.data.utils import read_ns5_file
+from src.data.dataset_utils import read_ns5_file
 import statsmodels.tsa.stattools as ts 
 from scipy.signal import welch
 import numpy as np 
