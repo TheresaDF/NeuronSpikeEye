@@ -105,6 +105,7 @@ def bin_data(data : np.ndarray, spike = np.ndarray) -> np.ndarray:
 
     return segments 
 
+
 def add_to_dictionary(eye : int, d : dict[str, str]) -> dict[str, str]:
     """Function initializes dictionaries to save data"""
 
