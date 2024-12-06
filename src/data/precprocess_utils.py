@@ -22,6 +22,7 @@ def freq_to_time(yf):
     ifft_data = ifft(yf)
     return ifft_data
 
+
 def perform_ICA(data, n_components = 32):
     """
     Function to perform ICA on the data
@@ -46,13 +47,13 @@ def remove_drift(bins_, freq = 1):
     for i in range(100):
         xf, yf = time_to_freq(bins[i])
         yf[np.abs(xf) < freq] = 0 
-        bin_ = freq_to_time(yf)
+        bin_ = np.real(freq_to_time(yf))
         bins[i] = bin_
 
     return bins 
 
 
-def compute_num_components(data, threshold = 0.95, to_plot = False):
+def compute_num_components(data, threshold = 0.95, to_plot = False) -> np.ndarray:
     """
     Function to compute the number of components to keep
     """
@@ -102,9 +103,24 @@ def find_bad_channels(data : np.ndarray, n_comp : int) -> np.ndarray:
 
     return idx
 
+def low_pass(data : np.ndarray, freq_threshold : int = 10000, sampling_rate : int = 30000) -> np.ndarray: 
+    """Function to apply high pass filter"""
+    data_ = np.copy(data)
+    for i in range(data.shape[1]):
+        xf, yf = time_to_freq(data[:, i], sample_rate=sampling_rate)
+        yf[np.abs(xf) > freq_threshold] = 0
+
+        data_[:, i] = freq_to_time(yf)
+    
+    return data_ 
+
 
 def filter(data : np.ndarray) -> np.ndarray:
     """ Use ICA to filtef data"""
+
+    # remove drift 
+    data = remove_drift(data)
+    data = low_pass(data, freq_threshold = 5000)
 
     # compute number of components to keep 
     n_comp = max(7, compute_num_components(data, threshold = 0.95))
@@ -115,8 +131,5 @@ def filter(data : np.ndarray) -> np.ndarray:
     # remove bad components
     idx = find_bad_channels(data_trans, n_comp)
     data_filtered = remove_ica_components(ica, data_trans, idx)
-
-    # remove drift
-    data_filtered = remove_drift(data_filtered)
     
     return data_filtered
