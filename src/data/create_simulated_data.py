@@ -10,120 +10,90 @@ import os
 sns.set_theme()
     
 
-
 class SimulateData:
-    def __init__(self, noise : list[float, float, float] = [200, 1, 10],
+    def __init__(self, SNR = 0.5,
+                       noise_params : list[float, float, float, float] = [200, 1, 10, 1.5],
                        stim_freq : int = 10, 
-                       CAP_amp : float = 30,
+                       stim_amp : int = 6000, 
                        CAP_freq : int = 50,
                        CAP_dist : str = "uniform") -> None:
         """
         Simulate data for the project
         Inputs: 
-            noise: np.array([float, float, float]) - noise parameters for power line intereference, 500 Hz noise and random gaussian noise
+            SNR : float - signal to noise ratio
+            noise_params: np.array([float, float, float, float]) - noise parameters for power line intereference, 500 Hz noise, gaussian noise and high frequency noise 
             stim_freq: float - frequency of the stimulus signal¨
-            CAP_amp: float - amplitude of the CAP signal
             CAP_freq: int - frequency of the CAP signal
             CAP_dist: str - distribution of the CAP signal (uniform, lognormal, normal)
         """
-        self.noise = noise
-
-        self.CAP_amp = CAP_amp
+        self.SNR = SNR 
+        self.noise_params = noise_params
+        
         self.CAP_dist = CAP_dist
         self.CAP_freq = CAP_freq
         self.CAP_indices = None 
 
         self.stim_freq = stim_freq
+        self.stim_amp = stim_amp
         self.SA_indices = None
         self.num_stims = None 
         
-        self.length = 300300
-        self.num_channels = 2 
+        self.length = 300000
+        self.num_channels = 32 
         self.fs = 3*1e4
         self.duration = self.length // self.fs 
         self.num_stims = int(self.duration * self.stim_freq)
+
+        self.signal = None 
+        self.true_signal = None
+        self.noise_signal = None 
     
     def base_signal(self):
-        """ Initialize the base signal with a sinusoidal signal"""
+        """ Initialize the base signal"""
 
-        self.signal = np.zeros((self.length, self.num_channels))
-        x = np.sin(2 * np.pi * 350 * np.linspace(0, self.duration, self.length)) * 0.1
-        for channel in range(self.num_channels):
-            # tmp = x + np.random.normal(0, 0.5, self.length)*300
-            # tmp = x + np.random.normal(-0.5, 0.5, self.length)*300
-            # signal_spike = np.array([0 if i % 20 else np.random.choice([-1, 1]) for i in range(self.length)]) * 500
+        self.noise_signal = np.zeros((self.length, self.num_channels))
 
-            tmp = x + np.random.normal(0, 0.5, self.length)*300
-            self.signal[:, channel] = np.convolve(tmp , np.ones(15)/15, mode='same') 
     
-    def add_noise_pli(self):
+    def add_noise_params_pli(self):
         """Add power line interference noise to the signal"""
 
-        spike = np.flip(lognorm.pdf(np.linspace(0, 3, 100), 1, 0, 0.4))
-        hertz_20_ms = int(20 * self.fs // 1000)
-        num_spikes = int(self.length / hertz_20_ms) 
-        spike = spike / np.max(spike) * self.noise[0]
-
+        pli = np.load("noise_files_sim_data/pli.npy")
         for channel in range(self.num_channels):
-            for i in range(num_spikes-1):
-                spike_ = spike 
-                self.signal[hertz_20_ms * i: (hertz_20_ms * i + len(spike)), channel] += spike_ #  * np.random.randint(8, 12, 1)[0] / 10  
-                self.signal[hertz_20_ms * i- hertz_20_ms //2 : (hertz_20_ms * i + len(spike) - hertz_20_ms // 2), channel] -= spike_ #  * np.random.randint(8, 12, 1)[0] / 10  
+            self.noise_signal[:, channel] += pli * self.noise_params[0]  
 
-                # add spike after PLI of smaller magnitude 
-                self.signal[hertz_20_ms * i + 50: (hertz_20_ms * i + len(spike) + 50), channel] += spike_ * 0.5
-                self.signal[hertz_20_ms * i + 50 - hertz_20_ms //2 : (hertz_20_ms * i + len(spike) + 50 - hertz_20_ms // 2), channel] -= spike_ * 0.5
-
-    def add_noise_pli2(self) -> None:
-        """ Add power line interference noise to the signal"""
-
-        # create the power line interference signal
-        signal_50 = np.sin(2*np.pi*50*np.linspace(0, self.duration, self.length)) * 1
-        signal_100 = np.sin(2*np.pi*100*np.linspace(0, self.duration, self.length)) * 0.5 
-        signal_150 = np.sin(2*np.pi*150*np.linspace(0, self.duration, self.length)) * 0.25 
-        signal_200 = np.sin(2*np.pi*200*np.linspace(0, self.duration, self.length)) * 0.1
-        signal_250 = np.sin(2*np.pi*250*np.linspace(0, self.duration, self.length)) * 0.05
-
-        # add the power line interference signal to the signal
-        pli_signal = signal_50 + signal_100 + signal_150 + signal_200 + signal_250
-
-        # add noise to the signal
-        for channel in range(self.num_channels):
-            self.signal[:, channel] += pli_signal * self.noise[0]
-
-    def add_noise_500_hz(self):
+    def add_noise_params_500_hz(self):
         """ Add 500 Hz noise to the signal"""
 
-        # read 500Hz noise
-        noise_500 = np.load("noise_files_sim_data/500_Hz.npy")
-        n = len(noise_500)
+        # read 500Hz noise_params
+        noise_params_500 = np.load("noise_files_sim_data/500_Hz.npy")
+        n = len(noise_params_500)
         num_rep = int(np.ceil(self.length / n))
 
         # match length of signal 
-        noise_500 = np.array([noise_500 for _ in range(num_rep)]).ravel() 
-        noise_500 = noise_500[:self.length]
+        noise_params_500 = np.array([noise_params_500 for _ in range(num_rep)]).ravel() 
+        noise_params_500 = noise_params_500[:self.length]
 
-        # normalize noise such that the amplitude parameter is interpretable 
-        noise_500 /= np.max(noise_500)
+        # normalize noise_params such that the amplitude parameter is interpretable 
+        noise_params_500 /= np.max(noise_params_500)
         for channel in range(self.num_channels):
-            self.signal[:, channel] += noise_500 * self.noise[1]
+            self.noise_signal[:, channel] += noise_params_500 * self.noise_params[1]
 
-    def add_noise_gauss(self):
-        """ Add gaussian noise to the signal"""
-
-        # add gaussian noise 
-        for channel in range(self.num_channels): 
-            self.signal[:, channel] += np.random.normal(0, self.noise[2], self.length)
-
-    def add_noise_high_freq(self):
+    def add_noise_params_high_freq(self):
         """ Add high frequency noise to the signal"""
 
-        # add noise around 125000
+        # read high frequency noise_params
+        high_freq = np.load("noise_files_sim_data/high_freq.npy")
+
+        # normalize noise_params such that the amplitude parameter is interpretable 
         for channel in range(self.num_channels):
-            for c, hz in enumerate(np.arange(12300, 12600, 30)):
-                coef = c+1 if c < 5 else 10-c
-                coef /= 3 
-                self.signal[:, channel] += coef * np.sin(2 * np.pi * hz * np.linspace(0, self.duration, self.length))
+            self.noise_signal[:, channel] += high_freq * self.noise_params[3]
+
+    def add_noise_params_gauss(self):
+        """ Add gaussian noise to the signal"""
+
+        # add gaussian noise_params 
+        for channel in range(self.num_channels): 
+            self.noise_signal[:, channel] += np.random.normal(0, self.noise_params[2], self.length)
 
     def add_stim_to_all_channels(self, SA_options : np.ndarray, SA_idx : int, idx : int) -> None:
         """ Add a stimulus to all channels"""
@@ -143,7 +113,7 @@ class SimulateData:
                 idx1 = 0
                 idx2 = len(SA)
 
-            self.signal[idx1:idx2, channel] += SA 
+            self.noise_signal[idx1:idx2, channel] += SA * self.stim_amp
 
 
     def add_stim_to_single_channel(self, SA_options : np.ndarray, spacing : int, SA_idx : int, channel : int, save_indices : bool = False) -> None:
@@ -151,6 +121,7 @@ class SimulateData:
 
         # construct SA and add to signals
         SA = SA_options[SA_idx] 
+        SA /= np.max(SA)
 
         # insert every stimulation 
         for stim in range(self.num_stims):
@@ -172,7 +143,7 @@ class SimulateData:
                 idx2 = len(SA)
 
             # insert SA 
-            self.signal[idx1:idx2, channel] += SA
+            self.noise_signal[idx1:idx2, channel] += SA * self.stim_amp
 
             # save the indices of the stimuli
             if save_indices:
@@ -215,6 +186,37 @@ class SimulateData:
             # add stimulus to signal
             self.add_stim_to_all_channels(SA_options, SA_idx, idx, apply_offset=False)
 
+    def add_spontaneous_activity(self) -> None:
+        """Function to add spontaneous spikes"""
+
+        duration = 2 
+        CAP = self.get_CAP(duration)
+        num_points = int(duration * 30)
+        interp = interp1d(np.arange(0, len(CAP)), CAP)
+
+        spike_rate = 5 
+        spike_probability = spike_rate / self.fs 
+        num_samples = int(self.fs * self.duration)
+
+        # Generate spikes: 1 for a spike, 0 otherwise
+        spikes = (np.random.rand(num_samples) < spike_probability).astype(int)
+
+        # insert spike where there is a 1
+        for i in range(num_samples):
+            if spikes[i] == 1:
+                idx = i 
+                idx1 = idx 
+                idx2 = idx + num_points
+
+                # take care of edge cases
+                if idx2 >= self.length: 
+                    idx1 = idx2 - num_points - 1 
+                    idx2 = self.length - 1
+                elif idx1 < 0:
+                    idx1 = 0
+                    idx2 = num_points
+
+                self.true_signal[idx1:idx2, 0] += interp(np.linspace(0, len(CAP)-1, num_points)) * 2 
 
     def base_CAP(self) -> np.ndarray:
         """ Create the base CAP signal"""
@@ -229,8 +231,25 @@ class SimulateData:
         Y = gaussian_filter1d(Y, 4)
 
         return Y 
+    
 
-    def get_CAP(self, duration : float) -> np.ndarray:
+    def CAP2(self, duration : float) -> np.ndarray:
+        CAP2 = np.load("noise_files_sim_data/CAP2.npy")
+
+        # match to the duration of the CAP signal
+        num_points = int(duration * 30)
+        interp = interp1d(np.arange(0, len(CAP2)), CAP2)
+        x_new = np.linspace(0, len(CAP2)-1, num_points)
+        Y = interp(x_new)
+
+        # vary the amplitude a bit from the specified amplitude
+        Y /= np.max(Y)
+        scale = np.random.randint(7, 14, 1)[0] / 10
+        Y = Y * scale
+
+        return Y 
+
+    def CAP1(self, duration : float) -> np.ndarray:
         """ Get a CAP signal with a specified duration"""
 
         base_cap = self.base_CAP()
@@ -244,9 +263,20 @@ class SimulateData:
         # vary the amplitude a bit from the specified amplitude
         Y /= np.max(Y)
         scale = np.random.randint(7, 14, 1)[0] / 10  
-        Y = Y * self.CAP_amp * scale 
+        Y = Y * scale 
         
         return Y 
+    
+    def get_CAP(self, duration : float) -> np.ndarray:
+        """ Get a CAP signal with a specified duration"""
+
+        # sample a CAP signal
+        CAP = self.CAP1(duration) if np.random.rand() < 0.5 else self.CAP2(duration)
+
+        # flip signal with 50% prob 
+        CAP = -CAP if np.random.rand() < 0.5 else CAP
+
+        return CAP
     
     def sample_uniform_indices(self, stim : int, num_CAPs : int) -> np.ndarray:
         """ Sample indices uniformly"""
@@ -261,7 +291,7 @@ class SimulateData:
         """ Sample indices from a lognormal distribution"""
 
         # add extra to mean since SA indices refer to where they start 
-        mu = 300  
+        mu = 600  
         sigma = 2*1e5
         sigma_log = np.sqrt(np.log(1 + (sigma / mu**2)))
         mu_log = np.log(mu) - 0.5 * sigma_log**2
@@ -280,6 +310,7 @@ class SimulateData:
     def add_CAP(self):
         """ Add CAP signals to the signal"""
         
+        self.true_signal = np.zeros((self.length, self.num_channels))
         self.CAP_indices = np.zeros((self.num_stims, self.num_channels), dtype = object)
         
         # get the average length of the segments between the stimuli
@@ -290,49 +321,64 @@ class SimulateData:
 
         for channel in range(self.num_channels):
             for stim in range(self.num_stims):
-                if self.CAP_dist == "lognormal":
-                    indices = self.sample_lognormal_indices(stim, num_CAPs)
-        
-                elif self.CAP_dist == "normal":
-                    indices = self.sample_normal_indices(stim, num_CAPs)
-        
-                elif self.CAP_dist == "uniform":
-                    indices = self.sample_uniform_indices(stim, num_CAPs)
+                # compute change of there occuring a CAP signal
+                p = np.random.rand() < 0.3
 
-                for cap in range(num_CAPs):
-                    # sample a CAP 
-                    duration = np.random.randint(5, 11) + np.random.random()
-                    CAP = self.get_CAP(duration)
-
-                    # insert cap into signal
-                    if indices[cap] + len(CAP) > self.length:
-                        self.signal[indices[cap]:, channel] += CAP[:self.length - indices[cap]]
-                    else: 
-                        self.signal[indices[cap]:indices[cap] + len(CAP), channel] += CAP
+                if p: 
+                    if self.CAP_dist == "lognormal":
+                        indices = self.sample_lognormal_indices(stim, num_CAPs)
             
-                    # store the indices of the CAPs
-                self.CAP_indices[stim][channel] = indices.tolist()
-                 
+                    elif self.CAP_dist == "normal":
+                        indices = self.sample_normal_indices(stim, num_CAPs)
+            
+                    elif self.CAP_dist == "uniform":
+                        indices = self.sample_uniform_indices(stim, num_CAPs)
+
+                    for cap in range(num_CAPs):
+                        # sample a CAP 
+                        duration = np.random.randint(3, 8) + np.random.random()
+                        CAP = self.get_CAP(duration)
+
+                        # insert cap into signal as well as the true signal 
+                        if indices[cap] + len(CAP) > self.length:
+                            self.true_signal[indices[cap]:, channel] += CAP[:self.length - indices[cap]]
+                        else: 
+                            self.true_signal[indices[cap]:indices[cap] + len(CAP), channel] += CAP
+                
+                        # store the indices of the CAPs
+                    self.CAP_indices[stim][channel] = indices.tolist()
+
             
     def construct_signal(self):
         """ Construct the signal"""
 
+        ### Noise signal ### 
         # init signal 
         self.base_signal()
 
-        # add stimuli and CAP
+        # noise params 
+        self.add_noise_params_500_hz()
+        self.add_noise_params_gauss()
+        self.add_noise_params_pli()
+        self.add_noise_params_high_freq()
+
+        # compute power of noise signal 
+        rms_noise = np.mean(self.noise_signal**2, axis=0)
+
+        # add stimuli
         self.add_all_stimuli(); 
+
+        ### true signal ###
         self.add_CAP()
+        self.add_spontaneous_activity()
 
-        # noise 
-        self.add_noise_500_hz()
-        self.add_noise_gauss()
-        self.add_noise_pli()
-        self.add_noise_high_freq()   
-
-        # subtract mean from each channel 
+        ### combine signals ###
+        self.signal = np.zeros((self.length, self.num_channels))
         for channel in range(self.num_channels):
-            self.signal[:, channel] -= np.mean(self.signal[:, channel])
+            pow_true_signal = np.sqrt(self.SNR * rms_noise[channel])
+            self.signal[:, channel] = pow_true_signal * self.true_signal[:, channel] + self.noise_signal[:, channel]
+            self.true_signal[:, channel] = pow_true_signal * self.true_signal[:, channel]
+        
 
 
     def time_to_freq(self, data : np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -354,23 +400,24 @@ class SimulateData:
         ifft_data = ifft(yf)
         return ifft_data
 
-    def plot_data(self, channels : tuple[int, int]) -> None:
+    def plot_data(self, channel : int, xlim  : tuple[float, float] = (1, 1.1), ylim : tuple[float, float] = (-300, 300)) -> None:
         """ Plot two channels if the data"""
         num_sec = self.duration 
         x_axis = np.linspace(0, num_sec, self.length)
 
         fig, ax = plt.subplots(2, 1, figsize = (18, 8), sharex=True, sharey = True)
-        ax[0].plot(x_axis, self.signal[:, channels[0]])
+        ax[0].plot(x_axis, self.signal[:, channel], color = "darkblue")
         ax[0].set_title("Time domain signal")
         ax[0].set_xlabel("Time (s)")
         ax[0].set_ylabel("Amplitude")
 
-        ax[1].plot(x_axis, self.signal[:, channels[1]])
+        ax[1].plot(x_axis, self.true_signal[:, channel], color = "darkblue")
         ax[1].set_title("Time domain signal")
         ax[1].set_xlabel("Time (s)")
         ax[1].set_ylabel("Amplitude")
-        [a.set_xlim([1, 1.1]) for a in ax]
-        [a.set_ylim([-300, 300]) for a in ax]
+
+        [a.set_ylim([ylim[0], ylim[1]]) for a in ax]
+        [a.set_xlim([xlim[0], xlim[1]]) for a in ax]
         plt.show()
 
 def save_data(data : np.ndarray, name : str) -> None:
@@ -383,7 +430,7 @@ if __name__ == "__main__":
     print(os.getcwd())
 
 
-    simulator = SimulateData([200, 1, 0.5], stim_freq=10, CAP_amp=30, CAP_dist="lognormal")
+    simulator = SimulateData(noise_params = [200, 1, 10, 0.3], SNR = 1, stim_freq=10, stim_amp = 6000, CAP_freq = 40, CAP_dist="lognormal")
     simulator.construct_signal()
 
     # save data
