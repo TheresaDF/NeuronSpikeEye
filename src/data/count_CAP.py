@@ -31,7 +31,7 @@ def count_caps(configurations) -> tuple[np.ndarray, np.ndarray]:
     all_true_counts = np.zeros((configurations.num_channels, configurations.duration * configurations.stim_freq))
 
     # loop over all channels
-    for channel in range(configurations.num_channels):
+    for channel in tqdm(range(configurations.num_channels)):
         # find the SA and bin accordingly
         peaks, _ = find_peaks(configurations.signal[:, channel], height = 30, distance = 300000 / (configurations.stim_freq * configurations.duration))
         bins = bin_data(configurations.filtered_signal[:, channel], peaks).T 
@@ -40,7 +40,7 @@ def count_caps(configurations) -> tuple[np.ndarray, np.ndarray]:
         counts = np.zeros(configurations.duration * configurations.stim_freq)
 
         # loop over all bins
-        for bin_idx in tqdm(range(len(counts))):
+        for bin_idx in range(len(counts)):
             # apply wavelet transform
             coefficients, _ = pywt.cwt(bins[:, bin_idx], scales=np.arange(1, 128), wavelet='cgau1', sampling_period=1/30000)
             
