@@ -196,27 +196,35 @@ class SimulateData:
 
         spike_rate = 5 
         spike_probability = spike_rate / self.fs 
-        num_samples = int(self.fs * self.duration)
 
-        # Generate spikes: 1 for a spike, 0 otherwise
-        spikes = (np.random.rand(num_samples) < spike_probability).astype(int)
+        for channel in range(self.num_channels):
+            num_samples = int(self.fs * self.duration)
 
-        # insert spike where there is a 1
-        for i in range(num_samples):
-            if spikes[i] == 1:
-                idx = i 
-                idx1 = idx 
-                idx2 = idx + num_points
+            # Generate spikes: 1 for a spike, 0 otherwise
+            spikes = (np.random.rand(num_samples) < spike_probability).astype(int)
 
-                # take care of edge cases
-                if idx2 >= self.length: 
-                    idx1 = idx2 - num_points - 1 
-                    idx2 = self.length - 1
-                elif idx1 < 0:
-                    idx1 = 0
-                    idx2 = num_points
+            # insert spike where there is a 1
+            for i in range(num_samples):
+                if spikes[i] == 1:
+                    idx = i 
+                    idx1 = idx 
+                    idx2 = idx + num_points
 
-                self.true_signal[idx1:idx2, 0] += interp(np.linspace(0, len(CAP)-1, num_points)) * 2 
+                    # take care of edge cases
+                    if idx2 >= self.length: 
+                        idx1 = idx2 - num_points - 1 
+                        idx2 = self.length - 1
+                    elif idx1 < 0:
+                        idx1 = 0
+                        idx2 = num_points
+                    
+                    # insert into true signal 
+                    self.true_signal[idx1:idx2, channel] += interp(np.linspace(0, len(CAP)-1, num_points)) * 2 
+
+                    # update CAP indices 
+                    stim = idx1 // (self.length // self.num_stims)
+                    self.CAP_indices[stim][channel] = [self.CAP_indices[stim][channel], idx1]
+
 
     def base_CAP(self) -> np.ndarray:
         """ Create the base CAP signal"""
