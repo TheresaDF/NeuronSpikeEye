@@ -55,36 +55,42 @@ def remove_drift(data, freq = 1):
     return bins 
 
 
-def compute_num_components(data, threshold = 0.95, to_plot = False) -> np.ndarray:
-    """
-    Function to compute the number of components to keep
-    """
+# def compute_num_components(data, threshold = 0.95, to_plot = False) -> np.ndarray:
+#     """
+#     Function to compute the number of components to keep
+#     """
    
-    n_comp = np.arange(1, data.shape[1]+1)
-    loss = np.zeros(len(n_comp))
-    for i, n in enumerate(n_comp):
-        ica, data_trans = perform_ICA(data, n_components = n)
+#     n_comp = np.arange(1, data.shape[1]+1)
+#     loss = np.zeros(len(n_comp))
+#     for i, n in enumerate(n_comp):
+#         ica, ica_components = perform_ICA(data, n_components = n)
 
-        # compute reconstruction loss 
-        loss_current = np.linalg.norm(data - ica.inverse_transform(data_trans))
-        loss[i] = loss_current
+#         # reconstruct 
+#         reconstruction = ica.inverse_transform(ica_components)
 
-    loss = np.cumsum(loss)
-    loss = loss / loss[-1]
+#         # compute scaling factor for scaled MSE 
+#         alpha = np.mean(data * reconstruction) / np.mean(reconstruction ** 2)
 
-    # compute how many components to keep
-    idx = np.where(loss < threshold)[0][-1] + 1
+#         # compute reconstruction loss 
+#         loss_current = np.mean((data - alpha * reconstruction) ** 2)
+#         loss[i] = loss_current
 
-    if to_plot:
-        plt.figure(figsize = (10, 5))
-        plt.plot(n_comp, loss, color = "darkblue", marker = "o")
-        plt.plot(np.arange(-1, data.shape[1]+2), np.ones(len(n_comp)+3) * threshold, '--', color = "gray")
-        plt.xlabel("Number of components")
-        plt.ylabel("Reconstruction loss")
-        plt.xlim([0, data.shape[1]])
-        plt.show()
+#     loss = np.cumsum(loss)
+#     loss = loss / loss[-1]
 
-    return idx
+#     # compute how many components to keep
+#     idx = np.where(loss < threshold)[0][-1] + 1
+
+#     if to_plot:
+#         plt.figure(figsize = (10, 5))
+#         plt.plot(n_comp, loss, color = "darkblue", marker = "o")
+#         plt.plot(np.arange(-1, data.shape[1]+2), np.ones(len(n_comp)+3) * threshold, '--', color = "gray")
+#         plt.xlabel("Number of components")
+#         plt.ylabel("Reconstruction loss")
+#         plt.xlim([0, data.shape[1]])
+#         plt.show()
+
+#     return idx
 
 
 def find_bad_channels(data : np.ndarray, n_comp : int) -> np.ndarray:
@@ -94,7 +100,7 @@ def find_bad_channels(data : np.ndarray, n_comp : int) -> np.ndarray:
     for i in range(n_comp):
         acfs_all[i] = acf(data[:, i], nlags=20*30)[-1]
     
-    bad_component = np.max(np.abs(acfs_all))
+    bad_component = np.argmax(np.abs(acfs_all))
     return bad_component 
 
 
@@ -113,14 +119,15 @@ def filter(data : np.ndarray) -> np.ndarray:
     data = remove_drift(data)
     data = butter_lowpass(data)
 
-    # compute number of components to keep 
-    n_comp = max(7, compute_num_components(data, threshold = 0.95))
+    # start removing bad components
+    data_filtered = data 
+    for _ in range(2):
+        # perform ica 
+        ica, ica_components = perform_ICA(data_filtered, n_components = 32)
 
-    # perform ICA
-    ica, data_trans = perform_ICA(data, n_components = n_comp)
-
-    # remove bad components
-    idx = find_bad_channels(data_trans, n_comp)
-    data_filtered = remove_ica_components(ica, data_trans, idx)
+        # detect and remove bad channels 
+        idx = find_bad_channels(ica_components, 32)
+        data_filtered = remove_ica_components(ica, ica_components, idx)
+    
     
     return data_filtered
