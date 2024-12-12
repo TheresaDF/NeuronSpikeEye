@@ -50,181 +50,78 @@ class SimulateData:
     
     def base_signal(self):
         """ Initialize the base signal"""
-
         self.noise_signal = np.zeros((self.length, self.num_channels))
 
     
-    def add_noise_params_pli(self):
-        """Add power line interference noise to the signal"""
+    def add_noise(self, noise_file, amplitude):
+        """Generic function to add noise to the signal."""
+        noise = np.load(noise_file)
 
-        pli = np.load("noise_files_sim_data/pli.npy")
         for channel in range(self.num_channels):
-            self.noise_signal[:, channel] += pli * self.noise_params[0]  
+            self.noise_signal[:, channel] += noise * amplitude
 
-    def add_noise_params_500_hz(self):
-        """ Add 500 Hz noise to the signal"""
+    def add_noise_params(self):
+        """Add various noise components to the signal."""
+        self.add_noise("noise_files_sim_data/pli.npy", self.noise_params[0])
+        self.add_noise("noise_files_sim_data/500_Hz.npy", self.noise_params[1])
+        self.add_noise("noise_files_sim_data/high_freq.npy", self.noise_params[3])
 
-        # read 500Hz noise_params
-        noise_params_500 = np.load("noise_files_sim_data/500_Hz.npy")
-        n = len(noise_params_500)
-        num_rep = int(np.ceil(self.length / n))
-
-        # match length of signal 
-        noise_params_500 = np.array([noise_params_500 for _ in range(num_rep)]).ravel() 
-        noise_params_500 = noise_params_500[:self.length]
-
-        # normalize noise_params such that the amplitude parameter is interpretable 
-        noise_params_500 /= np.max(noise_params_500)
         for channel in range(self.num_channels):
-            self.noise_signal[:, channel] += noise_params_500 * self.noise_params[1]
-
-    def add_noise_params_high_freq(self):
-        """ Add high frequency noise to the signal"""
-
-        # read high frequency noise_params
-        high_freq = np.load("noise_files_sim_data/high_freq.npy")
-
-        # normalize noise_params such that the amplitude parameter is interpretable 
-        for channel in range(self.num_channels):
-            self.noise_signal[:, channel] += high_freq * self.noise_params[3]
-
-    def add_noise_params_gauss(self):
-        """ Add gaussian noise to the signal"""
-
-        # add gaussian noise_params 
-        for channel in range(self.num_channels): 
             self.noise_signal[:, channel] += np.random.normal(0, self.noise_params[2], self.length)
 
-    def add_stim_to_all_channels(self, SA_options : np.ndarray, SA_idx : int, idx : int) -> None:
-        """ Add a stimulus to all channels"""
+    def add_stimulus(self, SA_options, channel, spacing):
+        """Add stimuli to a specific channel."""
+        SA_idx = np.random.choice(len(SA_options))
+        SA = SA_options[SA_idx] / np.max(SA_options[SA_idx])  # Normalize
 
-        # construct SA and add to signals
-        SA = SA_options[SA_idx] * 0.8 
-        for channel in range(self.num_channels):
-
-            idx1 = idx 
-            idx2 = idx + len(SA)
-
-            # take care of edge cases
-            if idx2 >= self.length: 
-                idx1 = idx2 - len(SA) - 1 
-                idx2 = self.length - 1
-            elif idx1 < 0:
-                idx1 = 0
-                idx2 = len(SA)
-
-            self.noise_signal[idx1:idx2, channel] += SA * self.stim_amp
-
-
-    def add_stim_to_single_channel(self, SA_options : np.ndarray, spacing : int, SA_idx : int, channel : int, save_indices : bool = False) -> None:
-        """ Add all stimuli to a single channel"""
-
-        # construct SA and add to signals
-        SA = SA_options[SA_idx] 
-        SA /= np.max(SA)
-
-        # insert every stimulation 
         for stim in range(self.num_stims):
-            if save_indices:
-                offset = np.random.randint(-50, 50, 1)[0]
-                idx1 = spacing * stim + offset 
-                idx2 = spacing * stim + offset + len(SA)
-            else:
-                # SA indices have already been saved 
-                idx1 = self.SA_indices[stim]
-                idx2 = self.SA_indices[stim] + len(SA)
+            offset = np.random.randint(-20, 20)
+            idx1 = spacing * stim + offset
+            idx2 = idx1 + len(SA)
 
-            # take care of edge cases
-            if idx2 >= self.length: 
-                idx1 = idx2 - len(SA) - 1 
-                idx2 = self.length - 1
-            elif idx1 < 0:
-                idx1 = 0
-                idx2 = len(SA)
+            if idx1 < 0 or idx2 > self.length:
+                continue  # Skip out-of-bound indices
 
-            # insert SA 
             self.noise_signal[idx1:idx2, channel] += SA * self.stim_amp
 
-            # save the indices of the stimuli
-            if save_indices:
-                self.SA_indices[stim] = idx1
-         
+            if channel == 0:  # Save SA indices for the first channel (common for all channels)
+                # find the largest value between the two indices 
+                sa_idx = np.argmax(self.noise_signal[idx1:idx2, channel]) + idx1 
+                self.SA_indices[stim] = sa_idx
 
-    def add_all_stimuli(self) -> None:
-        """ Add all stimuli to the signal"""
-        
-        # read the stimulus signal (one stim type should be used throughout the signal but not across channels)
+    def add_all_stimuli(self):
+        """Add all stimuli to the signal."""
         SA_options = np.load("noise_files_sim_data/SA_time.npy")
 
-        # init variables 
-        p = np.ones(self.num_channels) / self.num_channels 
-        self.SA_indices = np.zeros(self.num_stims, dtype = int)
+        self.SA_indices = np.zeros(self.num_stims, dtype=int)
         spacing = self.length // self.num_stims
 
-        # add stimulus to a single channel
         for channel in range(self.num_channels):
-            # sample a SA 
-            SA_idx = np.random.choice(self.num_channels, p = p)
-            
-            # insert SA 
-            if channel == 0:
-                self.add_stim_to_single_channel(SA_options, spacing, SA_idx, channel, save_indices=True)
-            else:
-                self.add_stim_to_single_channel(SA_options, spacing, SA_idx, channel)
-            
-            # update probability
-            p[SA_idx] /= 10
-            p /= np.sum(p)
+            self.add_stimulus(SA_options, channel, spacing)
 
-        # see if extra stimuli should be added
-        if np.random.rand() < 0.001:
-            # draw random index and add a stimulus
-            idx = np.random.randint(0, self.length, 1)[0]
-            SA_idx = np.random.choice(self.num_channels, p = p)
-            self.SA_indices = np.sort(np.append(self.SA_indices, idx))
-
-            # add stimulus to signal
-            self.add_stim_to_all_channels(SA_options, SA_idx, idx, apply_offset=False)
-
-    def add_spontaneous_activity(self) -> None:
-        """Function to add spontaneous spikes"""
-
-        duration = 2 
-        CAP = self.get_CAP(duration)
-        num_points = int(duration * 30)
-        interp = interp1d(np.arange(0, len(CAP)), CAP)
-
-        spike_rate = 5 
-        spike_probability = spike_rate / self.fs 
-
+    def add_spontaneous_activity(self):
+        """Add spontaneous activity to the signal."""
         for channel in range(self.num_channels):
-            num_samples = int(self.fs * self.duration)
+            activity_count = int(self.duration * 5)  # Approx. 5 spontaneous activities per second
+            indices = np.random.randint(0, self.length, size=activity_count)
 
-            # Generate spikes: 1 for a spike, 0 otherwise
-            spikes = (np.random.rand(num_samples) < spike_probability).astype(int)
+            for idx in indices:
+                duration = np.random.uniform(1, 5)
+                spon_act = self.get_CAP(duration) * 0.5  # Spontaneous activity scaled down
+                idx1 = max(0, idx)
+                idx2 = min(self.length, idx1 + len(spon_act))
+                SA_slice = spon_act[:idx2 - idx1]
+                self.true_signal[idx1:idx2, channel] += SA_slice
 
-            # insert spike where there is a 1
-            for i in range(num_samples):
-                if spikes[i] == 1:
-                    idx = i 
-                    idx1 = idx 
-                    idx2 = idx + num_points
+                spon_act_idx = np.argmax(self.true_signal[idx1:idx2, channel]) + idx1 
 
-                    # take care of edge cases
-                    if idx2 >= self.length: 
-                        idx1 = idx2 - num_points - 1 
-                        idx2 = self.length - 1
-                    elif idx1 < 0:
-                        idx1 = 0
-                        idx2 = num_points
-                    
-                    # insert into true signal 
-                    self.true_signal[idx1:idx2, channel] += interp(np.linspace(0, len(CAP)-1, num_points)) * 2 
-
-                    # update CAP indices 
-                    stim = idx1 // (self.length // self.num_stims)
-                    self.CAP_indices[stim][channel] = [self.CAP_indices[stim][channel], idx1]
-
+                # update CAP indices 
+                stim = spon_act_idx // (self.length // self.num_stims)
+                if type(self.CAP_indices[stim][channel]) == list:
+                    self.CAP_indices[stim][channel].append(idx1)
+                else: 
+                    self.CAP_indices[stim][channel] = [idx1]
+                        
 
     def base_CAP(self) -> np.ndarray:
         """ Create the base CAP signal"""
@@ -324,37 +221,37 @@ class SimulateData:
         # get the average length of the segments between the stimuli
         segment_length = np.mean(self.SA_indices[1:] - self.SA_indices[:-1])
 
-        # compute the number of CAP signals to add from CAP freq and segment length
-        num_CAPs = int(segment_length / 30 * self.CAP_freq / 1000) + np.random.choice([-1, 0, 1], 1)[0]
-
         for channel in range(self.num_channels):
             for stim in range(self.num_stims):
                 # compute change of there occuring a CAP signal
-                p = np.random.rand() < 0.3
-
-                if p: 
-                    if self.CAP_dist == "lognormal":
-                        indices = self.sample_lognormal_indices(stim, num_CAPs)
-            
-                    elif self.CAP_dist == "normal":
-                        indices = self.sample_normal_indices(stim, num_CAPs)
-            
-                    elif self.CAP_dist == "uniform":
-                        indices = self.sample_uniform_indices(stim, num_CAPs)
-
-                    for cap in range(num_CAPs):
-                        # sample a CAP 
-                        duration = np.random.randint(3, 8) + np.random.random()
-                        CAP = self.get_CAP(duration)
-
-                        # insert cap into signal as well as the true signal 
-                        if indices[cap] + len(CAP) > self.length:
-                            self.true_signal[indices[cap]:, channel] += CAP[:self.length - indices[cap]]
-                        else: 
-                            self.true_signal[indices[cap]:indices[cap] + len(CAP), channel] += CAP
+                if np.random.rand() > 0.3: 
+                    continue 
+               
+                # compute the number of CAP signals to add from CAP freq and segment length
+                num_CAPs = max(int(segment_length / 30 * self.CAP_freq / 1000) + np.random.choice([-1, 0, 1], 1)[0], 1)
                 
-                        # store the indices of the CAPs
-                    self.CAP_indices[stim][channel] = indices.tolist()
+                if self.CAP_dist == "lognormal":
+                    indices = self.sample_lognormal_indices(stim, num_CAPs)
+        
+                elif self.CAP_dist == "normal":
+                    indices = self.sample_normal_indices(stim, num_CAPs)
+        
+                elif self.CAP_dist == "uniform":
+                    indices = self.sample_uniform_indices(stim, num_CAPs)
+
+                for cap in range(num_CAPs):
+                    # sample a CAP 
+                    duration = np.random.randint(3, 8) + np.random.random()
+                    CAP = self.get_CAP(duration)
+
+                    # insert cap into true signal 
+                    if indices[cap] + len(CAP) > self.length:
+                        self.true_signal[indices[cap]:, channel] += CAP[:self.length - indices[cap]]
+                    else: 
+                        self.true_signal[indices[cap]:indices[cap] + len(CAP), channel] += CAP
+            
+                    # store the indices of the CAPs
+                self.CAP_indices[stim][channel] = indices.tolist()
 
             
     def construct_signal(self):
@@ -365,10 +262,7 @@ class SimulateData:
         self.base_signal()
 
         # noise params 
-        self.add_noise_params_500_hz()
-        self.add_noise_params_gauss()
-        self.add_noise_params_pli()
-        self.add_noise_params_high_freq()
+        self.add_noise_params()
 
         # compute power of noise signal 
         rms_noise = np.mean(self.noise_signal**2, axis=0)
@@ -389,25 +283,6 @@ class SimulateData:
         
 
 
-    def time_to_freq(self, data : np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        """
-        Function to convert time domain data to frequency domain data
-        """
-        duration = len(data) / self.fs 
-        N  = int(self.fs * duration)
-        yf = fft(data)
-        xf = fftfreq(N, 1 / self.fs)
-
-        return xf, yf 
-
-    def freq_to_time(self, yf : np.ndarray) -> np.ndarray:
-        """
-        Function to convert frequency domain data to time domain data
-        """
-
-        ifft_data = ifft(yf)
-        return ifft_data
-
     def plot_data(self, channel : int, xlim  : tuple[float, float] = (1, 1.1), ylim : tuple[float, float] = (-300, 300)) -> None:
         """ Plot two channels if the data"""
         num_sec = self.duration 
@@ -427,6 +302,7 @@ class SimulateData:
         [a.set_ylim([ylim[0], ylim[1]]) for a in ax]
         [a.set_xlim([xlim[0], xlim[1]]) for a in ax]
         plt.show()
+
 
 def save_data(data : np.ndarray, name : str) -> None:
     """ Save data to file"""
