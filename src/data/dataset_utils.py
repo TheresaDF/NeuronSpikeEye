@@ -120,3 +120,20 @@ def add_to_dictionary(eye : int, d : dict[str, str]) -> dict[str, str]:
     return d 
 
 
+
+from scipy.signal import iirnotch, lfilter
+def notch_filter(x, f0, fs, Q = 30):
+    b, a = iirnotch(f0 / (fs / 2), Q)
+    y = lfilter(b, a, x)
+    
+    return y
+
+def apply_notch_filter(data, f0, num, sample_rate = 3*1e4, Q = 30):
+    """
+    Apply notch filter to data
+    """
+    filtered_data = data.copy()
+    for i in range(num): 
+        filtered_data = notch_filter(filtered_data, (i+1) * f0, sample_rate, Q = Q)
+
+    return filtered_data
