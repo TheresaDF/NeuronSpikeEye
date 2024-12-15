@@ -26,8 +26,8 @@ def count_caps(simulator : SimulateData, filtered_signal : np.ndarray) -> tuple[
     """ Function that estimates the number of CAPs in the signal """
 
     # allocate memory for the counts
-    all_est_counts = np.zeros((simulator.num_channels, simulator.duration * simulator.stim_freq))
-    all_true_counts = np.zeros((simulator.num_channels, simulator.duration * simulator.stim_freq))
+    all_est_counts = np.zeros((simulator.num_channels, int(simulator.duration * simulator.stim_freq)))
+    all_true_counts = np.zeros((simulator.num_channels, int(simulator.duration * simulator.stim_freq)))
 
     # loop over all channels
     for channel in tqdm(range(simulator.num_channels)):
