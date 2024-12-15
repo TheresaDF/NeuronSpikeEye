@@ -36,7 +36,7 @@ def count_caps(simulator : SimulateData, filtered_signal : np.ndarray) -> tuple[
         bins = bin_data(filtered_signal[:, channel], peaks).T 
 
         # loop over all bins
-        for bin_idx in range(len(bins.shape[1])):
+        for bin_idx in range(bins.shape[1]):
             # apply wavelet transform
             coefficients, _ = pywt.cwt(bins[:, bin_idx], scales=np.arange(1, 128), wavelet='cgau1', sampling_period=1/30000)
             
