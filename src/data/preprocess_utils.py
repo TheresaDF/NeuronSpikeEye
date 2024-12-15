@@ -1,5 +1,5 @@
 import numpy as np 
-from scipy.signal import wiener 
+from scipy.signal import wiener, find_peaks 
 from matplotlib import pyplot as plt 
 from scipy.fft import fft, fftfreq, ifft 
 from sklearn.decomposition import FastICA  
@@ -54,22 +54,41 @@ def remove_drift(data, freq = 1):
 
     return bins 
 
+def bin_data(channel, peaks):
+    """
+    Bin data into 80ms bins
+    """
+    binned_data = np.zeros((100, 2400))
+    for c, peak in enumerate(peaks):
+        if c == 100: break 
+        if (c == 99) & (peak+2700 > len(channel)):
+            binned_data[c, :len(channel) - peak] = channel[peak:]
+        else: 
+            binned_data[c] = channel[peak+300:peak+2700]
+    
+    return binned_data
 
-def find_bad_channels(data : np.ndarray, n_comp : int) -> np.ndarray:
+def find_bad_channels(data : np.ndarray, peaks : np.ndarray, n_comp : int) -> tuple[int, float]:
     """ Function to find bad channels using ICA"""
 
     acfs_all = np.zeros((n_comp, 3))
     for i in range(n_comp):
-        acf_tmp = acf(data[:, i], nlags=20*30*3)
+        # bin segment 
+        bins = bin_data(data[:, i], peaks).ravel()
+
+        acf_tmp = acf(bins, nlags=20*30*3)
         acfs_all[i, 0] = acf_tmp[20*30]
         acfs_all[i, 1] = acf_tmp[20*30 * 2]
         acfs_all[i, 2] = acf_tmp[20*30 * 3] 
     
-    bad_component = np.argmax(np.mean(np.abs(acfs_all), axis = 1))
-    return bad_component 
+    # bad_components = np.where(np.mean(acfs_all, axis = 1) > np.percentile(np.mean(acfs_all, axis = 1), 75))[0]
+    bad_component = np.argmax(np.mean(acfs_all, axis = 1))
+    value = np.max(np.mean(acfs_all, axis = 1))
+
+    return bad_component, value 
 
 
-def butter_lowpass(data : np.ndarray, cutoff : int = 5000, fs : int = 30000, order=10):
+def butter_lowpass(data : np.ndarray, cutoff : int = 5000, fs : int = 30000, order=20):
     nyquist = 0.5 * fs
     normal_cutoff = cutoff / nyquist
     b, a = butter(order, normal_cutoff, btype='low', analog=False)
@@ -120,7 +139,7 @@ def compute_num_components(data, threshold = 0.95, to_plot = False) -> np.ndarra
 
     return idx
 
-def filter(data : np.ndarray, num_ica = 2) -> np.ndarray:
+def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, duration : int = 10) -> np.ndarray:
     """ Use ICA to filtef data"""
 
     # smooth and filter the data
@@ -128,18 +147,31 @@ def filter(data : np.ndarray, num_ica = 2) -> np.ndarray:
     data = butter_lowpass(data)
     data = smooth_signal(data, window_len=5)
 
-    # start removing bad components
+    n_comp = 32 
+    acf_prev = None 
+
     data_filtered = data 
-    for _ in range(num_ica): 
-        # perform ica 
-        n_comp = compute_num_components(data, threshold = 0.99)
-        ica, ica_components = perform_ICA(data_filtered, n_components = n_comp)
+    peaks, _ = find_peaks(data[:, 0], height = 300, distance = length / (stim_freq * duration))
+    for _ in range(5):  
+        # perform ICA
+        ica, ica_components = perform_ICA(data_filtered, n_comp)
 
-        # detect and remove bad channels 
-        idx = find_bad_channels(ica_components, n_comp)
+        # find worst 59 hz component 
+        bad_component, acf_curr = find_bad_channels(ica_components, peaks, n_comp=n_comp)
 
-        # remove the bad component and smooth 
-        data_filtered = remove_ica_components(ica, ica_components, idx)
+        # remove component 
+        data_filtered = remove_ica_components(ica, ica_components, bad_component)
+
+        # decrement number of components 
+        n_comp -= 1 
+
+        # compute difference in acf 
+        print(acf_curr, acf_prev)
+        diff = acf_prev - acf_curr if acf_prev != None else 0 
+        if diff > 0.005: 
+            break 
+        
+        acf_prev = acf_curr 
 
     # smooth end result again 
     return data_filtered
