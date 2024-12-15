@@ -10,12 +10,12 @@ from src.data.preprocess_utils import filter
 
 def generate_inputs(snsr : np.ndarray, noise : np.ndarray, n_repeats : int = 10) -> list:  
     all_inputs = []
-    for n in noise: 
+    for n_count, n in enumerate(noise): 
         for s in snsr: 
             for count in range(n_repeats): 
                 filename = f"sim_" + str(int(s*10)) + "_" + str(n[0]) + "_" + str(n[1]) + "_" + str(n[2]) + "_" + str(n[3]) + "_" + str(count)
-                n_dist = n 
-                counter = n 
+                n_dist = n_count 
+                counter = count 
                 all_inputs.append((filename, n_dist, counter))
 
     return all_inputs 
