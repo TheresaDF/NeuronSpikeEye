@@ -8,33 +8,40 @@ from src.data.preprocess_utils import filter
 
 
 
-def generate_file_names(snsr : np.ndarray, noise : np.ndarray) -> list:  
-    all_filenames = []
+def generate_inputs(snsr : np.ndarray, noise : np.ndarray, n_repeats : int = 10) -> list:  
+    all_inputs = []
     for n in noise: 
         for s in snsr: 
-            for count in range(10): 
+            for count in range(n_repeats): 
                 filename = f"sim_" + str(int(s*10)) + "_" + str(n[0]) + "_" + str(n[1]) + "_" + str(n[2]) + "_" + str(n[3]) + "_" + str(count)
-                all_filenames.append(filename)
+                n_dist = n 
+                counter = n 
+                all_inputs.append((filename, n_dist, counter))
 
-    return all_filenames
+    return all_inputs 
+
 
 def create_folders(noise_params : np.ndarray):
+    os.makedirs("results", exist_ok=True)
+    os.makedirs("results/baseline", exist_ok=True)
     for i in range(noise_params.shape[0]): 
         os.makedirs(f"results/baseline/noise_config_{i}")
 
 
-def counter(filename : str, noise_params : int, count : int) -> None: 
+def counter(args : tuple[str, int, int]) -> None: 
+    # unpack arguments 
+    filename, noise_dist, count = args 
+    
     # unpack parameters from filename 
-
     filename_parts = filename.split("_")
-    snr = filename_parts[1] / 10 
-    pli = filename_parts[2]
-    hz_500 = filename_parts[3]
-    white = filename_parts[4]
-    high_freq = filename_parts[5]  
+    snr = float(filename_parts[1]) / 10 
+    pli = int(filename_parts[2])
+    hz_500 = int(filename_parts[3])
+    white = int(filename_parts[4])
+    high_freq = int(filename_parts[5])
     
     # make simulated data
-    simulator = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_freq = 10, CAP_dist="lognormal")
+    simulator = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_freq = 4, CAP_dist="lognormal")
     simulator.construct_signal()
 
     # filter signal 
@@ -52,33 +59,38 @@ def counter(filename : str, noise_params : int, count : int) -> None:
     d['filtered_signal'] = filtered_signal
 
     # construct save name 
-    save_name = f"results/baseline/noise_config_{noise_params}/snr_{int(snr*10)}_count_{count}.pkl"
+    save_name = f"../../results/baseline/noise_config_{noise_dist}/snr_{int(snr*10)}_count_{count}.pkl"
 
     # save files 
     with open(save_name) as output_file: 
         pickle.dump(d, output_file)
     output_file.close()
     
-def count_all(all_snrs : np.ndarray, noise : np.ndarray):
+def count_all(all_snrs : np.ndarray, noise : np.ndarray, n_repeats : int):
     # get filenames 
-    all_filenames = generate_file_names(all_snrs, noise)
+    inputs = generate_inputs(all_snrs, noise, n_repeats)
+    
 
     # start processing all files 
     with Pool() as pool:
         # Process 2D and 3D data
-        result = pool.map(counter, all_filenames) 
+        result = pool.map(counter, inputs) 
     
 
 if __name__ == "__main__":
     all_snrs = np.linspace(0.1, 1.9, num=18, endpoint=True)
-    noise_params = np.array([[200, 150, 10, 1], 
-                            [300, 200, 10, 1], 
-                            [200, 150, 10, 1], 
-                            [200, 150, 30, 1],
-                            [200, 150, 10, 5]])
+    noise_params = np.array([[200, 1, 10, 20], 
+                            [300, 5, 10, 20], 
+                            [200, 1, 10, 20], 
+                            [200, 1, 30, 20],
+                            [200, 1, 10, 40]])
+    n_repeats = 10 
     
     # create folders to save results to 
     create_folders(noise_params)
 
+    # change directory
+    os.chdir("src/data")
+
     # run the counting 
-    count_all(all_snrs, noise_params)
+    count_all(all_snrs, noise_params, n_repeats)
