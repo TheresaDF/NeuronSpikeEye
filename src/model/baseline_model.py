@@ -59,6 +59,6 @@ def count_caps(simulator : SimulateData, filtered_signal : np.ndarray) -> tuple[
             all_est_counts[channel, bin_idx] = len(np.where((components > 5* rms_components) & (components > 25))[0])
             
             # get the number of true counts 
-            all_true_counts[channel, bin_idx] = CAP_length(simulator.true_caps[channel, bin_idx])
+            all_true_counts[channel, bin_idx] = CAP_length(simulator.CAP_indices[bin_idx][channel])
 
     return all_est_counts, all_true_counts
