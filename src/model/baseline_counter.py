@@ -62,7 +62,7 @@ def counter(args : tuple[str, int, int]) -> None:
     save_name = f"../../results/baseline/noise_config_{noise_dist}/snr_{int(snr*10)}_count_{count}.pkl"
 
     # save files 
-    with open(save_name) as output_file: 
+    with open(save_name, 'wb') as output_file: 
         pickle.dump(d, output_file)
     output_file.close()
     
