@@ -35,38 +35,30 @@ def count_caps(simulator : SimulateData, filtered_signal : np.ndarray) -> tuple[
         peaks, _ = find_peaks(simulator.signal[:, channel], height = 30, distance = 300000 / (simulator.stim_freq * simulator.duration))
         bins = bin_data(filtered_signal[:, channel], peaks).T 
 
-        # allocate memory for the counts
-        counts = np.zeros(int(simulator.duration * simulator.stim_freq))
-
         # loop over all bins
-        for bin_idx in range(len(counts)):
+        for bin_idx in range(len(bins.shape[1])):
             # apply wavelet transform
             coefficients, _ = pywt.cwt(bins[:, bin_idx], scales=np.arange(1, 128), wavelet='cgau1', sampling_period=1/30000)
             
-            # threshold the coefficients 
-            coefs_real = np.real(np.abs(coefficients))
-            threshold = np.mean(coefs_real) + 4 * np.std(coefs_real)
-            significant_coefficients = np.real(np.where(np.abs(coefficients) > threshold, coefficients, 0))
-            label_image = label(np.abs(significant_coefficients) > 0)
+            # find local maxima at all scales 
+            scales = np.arange(1, 128)
+            snakes = np.zeros((len(scales), bins.shape[0]))
 
-            # count the number of peaks in the bin
-            counts[bin_idx] = []
-            for c in range(1, np.max(label_image)):
-                _, y = np.where(label_image == c)
-                counts[bin_idx].append(int(np.mean(y)))
+            for coef in range(len(scales)): 
+                rms = np.sqrt(np.mean(np.abs(coefficients[coef])**2))
+                peaks_coef, _ = find_peaks(np.abs(coefficients[coef]), height = 2*rms, distance = 30)
+                
+                snakes[coef, peaks_coef] = 1
 
-        # get true number of peaks
-        true_counts = [CAP_length(f) for f in simulator.CAP_indices[:, channel]]
+            # count the number of peaks in the bin (length and outlier)
+            labels = label(snakes)
+            components = np.bincount(labels.flat)[1:]
+            rms_components = np.sqrt(np.mean(components**2))
 
-        # save the counts 
-        all_est_counts[channel] = counts
-        all_true_counts[channel] = true_counts
+            # save the number of estimates bins
+            all_est_counts[channel, bin_idx] = len(np.where((components > 5* rms_components) & (components > 25))[0])
+            
+            # get the number of true counts 
+            all_true_counts[channel, bin_idx] = CAP_length(simulator.true_caps[channel, bin_idx])
 
     return all_est_counts, all_true_counts
-
-def compare_cap_count(configurations) -> tuple[list, list]:    
-
-    # compute estimated cap count 
-    est_counts, true_counts = count_caps(configurations, CAP_length)
-
-    return est_counts, true_counts
