@@ -38,7 +38,7 @@ def count_caps(simulator : SimulateData, filtered_signal : np.ndarray) -> tuple[
         # loop over all bins
         for bin_idx in range(bins.shape[1]):
             # apply wavelet transform
-            coefficients, _ = pywt.cwt(bins[:, bin_idx], scales=np.arange(1, 128), wavelet='cgau1', sampling_period=1/30000)
+            coefficients, _ = pywt.cwt(bins[:, bin_idx], scales=np.arange(1, 128), wavelet='cgau2', sampling_period=1/30000)
             
             # find local maxima at all scales 
             scales = np.arange(1, 128)
