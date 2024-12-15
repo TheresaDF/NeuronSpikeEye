@@ -15,7 +15,7 @@ class SimulateData:
                        noise_params : list[float, float, float, float] = [200, 1, 10, 1.5],
                        stim_freq : int = 10, 
                        stim_amp : int = 6000, 
-                       CAP_freq : int = 50,
+                       CAP_freq : int = 5,
                        CAP_dist : str = "uniform") -> None:
         """
         Simulate data for the project
@@ -182,36 +182,52 @@ class SimulateData:
         CAP = -CAP if np.random.rand() < 0.5 else CAP
 
         return CAP
-    
-    def sample_uniform_indices(self, stim : int, num_CAPs : int) -> np.ndarray:
-        """ Sample indices uniformly"""
+        
 
-        if stim == self.num_stims - 1:
-            indices = np.random.randint(self.SA_indices[stim], self.length, num_CAPs)
-        else: 
-            indices = np.random.randint(self.SA_indices[stim], self.SA_indices[stim+1], num_CAPs)
-        return indices
-    
-    def sample_lognormal_indices(self, stim : int, num_CAPs : int) -> np.ndarray:
-        """ Sample indices from a lognormal distribution"""
+    def sample_uniform_indices(self, stim, num_CAPs):
+        return self.sample_with_min_spacing(
+            stim, num_CAPs, distribution_func=np.random.uniform, low=0, high=1
+        )
 
-        # add extra to mean since SA indices refer to where they start 
-        mu = 600  
-        sigma = 2*1e5
+    def sample_lognormal_indices(self, stim, num_CAPs):
+        mu = 600
+        sigma = 2e5
         sigma_log = np.sqrt(np.log(1 + (sigma / mu**2)))
         mu_log = np.log(mu) - 0.5 * sigma_log**2
-        indices = lognorm.rvs(sigma_log, scale=np.exp(mu_log), size=num_CAPs) + self.SA_indices[stim]
+        return self.sample_with_min_spacing(
+            stim, num_CAPs, distribution_func=lognorm.rvs, s=sigma_log, scale=np.exp(mu_log)
+        )
 
-        return indices.astype(int)
-    
-    def sample_normal_indices(self, stim : int, num_CAPs : int) -> np.ndarray:
-        """ Sample indices from a normal distribution"""
+    def sample_normal_indices(self, stim, num_CAPs):
         mu = 600
         sigma = 500
-        indices = norm.rvs(mu, sigma, size=num_CAPs) + self.SA_indices[stim]
+        return self.sample_with_min_spacing(
+            stim, num_CAPs, distribution_func=norm.rvs, loc=mu, scale=sigma
+        )
 
-        return indices.astype(int)
-        
+
+    def ensure_min_spacing(self, indices, min_spacing, num_CAPs):
+        """ Ensure that indices have at least min_spacing points between them """
+        indices = np.sort(indices)  # Sort indices for easier checking
+        spaced_indices = [indices[0]]
+        for index in indices[1:]:
+            if index - spaced_indices[-1] >= min_spacing:
+                spaced_indices.append(index)
+            if len(spaced_indices) >= num_CAPs:  # Stop if we've collected enough
+                break
+        return np.array(spaced_indices, dtype=int)
+
+    def sample_with_min_spacing(self, stim, num_CAPs, distribution_func, **dist_params):
+        """ General function to sample with spacing constraint """
+
+        oversample_factor = 5  # Adjust this to reduce bias
+        total_samples = num_CAPs * oversample_factor
+        while True:
+            raw_indices = distribution_func(size=total_samples, **dist_params) + self.SA_indices[stim]
+            valid_indices = self.ensure_min_spacing(raw_indices.astype(int), 90, num_CAPs)
+            if len(valid_indices) == num_CAPs:
+                return valid_indices
+
     def add_CAP(self):
         """ Add CAP signals to the signal"""
         
@@ -228,16 +244,19 @@ class SimulateData:
                     continue 
                
                 # compute the number of CAP signals to add from CAP freq and segment length
-                num_CAPs = max(int(segment_length / 30 * self.CAP_freq / 1000) + np.random.choice([-1, 0, 1], 1)[0], 1)
+                num_CAPs = max(int(segment_length / 3000 * self.CAP_freq) + np.random.choice([-1, 0, 1], 1)[0], 1)
                 
                 if self.CAP_dist == "lognormal":
-                    indices = self.sample_lognormal_indices(stim, num_CAPs)
+                    # indices = self.sample_lognormal_indices(stim, num_CAPs)
+                    indices = self.sample_with_min_spacing(stim, num_CAPs, distribution_func=lognorm.rvs, s=2, scale=600)
         
                 elif self.CAP_dist == "normal":
-                    indices = self.sample_normal_indices(stim, num_CAPs)
+                    # indices = self.sample_normal_indices(stim, num_CAPs)
+                    indices = self.sample_with_min_spacing(stim, num_CAPs, distribution_func=norm.rvs, loc=600, scale=500)
         
                 elif self.CAP_dist == "uniform":
-                    indices = self.sample_uniform_indices(stim, num_CAPs)
+                    # indices = self.sample_uniform_indices(stim, num_CAPs)
+                    indices = self.sample_with_min_spacing(stim, num_CAPs, distribution_func=np.random.uniform, low=0, high=1)
 
                 for cap in range(num_CAPs):
                     # sample a CAP 
@@ -246,7 +265,8 @@ class SimulateData:
 
                     # insert cap into true signal 
                     if indices[cap] + len(CAP) > self.length:
-                        self.true_signal[indices[cap]:, channel] += CAP[:self.length - indices[cap]]
+                        n = self.true_signal[indices[cap]:, channel].shape[0]
+                        self.true_signal[indices[cap]:, channel] += CAP[:n]
                     else: 
                         self.true_signal[indices[cap]:indices[cap] + len(CAP), channel] += CAP
             
