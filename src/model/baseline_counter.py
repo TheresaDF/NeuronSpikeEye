@@ -41,6 +41,12 @@ def counter(args : tuple[str, int, int]) -> None:
     high_freq = int(filename_parts[5])
     count = int(filename_parts[6])
     
+    # construct save name 
+    save_name = f"../../results/baseline/noise_config_{noise_dist}/snr_{int(snr*10)}_count_{count}.pkl"
+
+    if os.path.exists(save_name): 
+        return
+
     # make simulated data
     seed = np.random.seed(hash(filename) % (2**32))
     simulator = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_freq = 4, CAP_dist="lognormal", seed = seed)
@@ -60,8 +66,7 @@ def counter(args : tuple[str, int, int]) -> None:
     d['true_signal'] = simulator.true_signal
     d['filtered_signal'] = filtered_signal
 
-    # construct save name 
-    save_name = f"../../results/baseline/noise_config_{noise_dist}/snr_{int(snr*10)}_count_{count}.pkl"
+    
 
     # save files 
     with open(save_name, 'wb') as output_file: 
