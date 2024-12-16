@@ -29,6 +29,7 @@ def create_folders(noise_params : np.ndarray):
 
 
 def counter(args : tuple[str, int, int]) -> None: 
+
     # unpack arguments 
     filename, noise_dist, count = args 
     
