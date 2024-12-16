@@ -16,7 +16,8 @@ class SimulateData:
                        stim_freq : int = 10, 
                        stim_amp : int = 6000, 
                        CAP_freq : int = 5,
-                       CAP_dist : str = "uniform") -> None:
+                       CAP_dist : str = "uniform", 
+                       seed = None) -> None:
         """
         Simulate data for the project
         Inputs: 
@@ -26,6 +27,10 @@ class SimulateData:
             CAP_freq: int - frequency of the CAP signal
             CAP_dist: str - distribution of the CAP signal (uniform, lognormal, normal)
         """
+        self.seed = seed 
+        if self.seed is not None: 
+            np.random.seed(self.seed)
+
         self.SNR = SNR 
         self.noise_params = noise_params
         
@@ -190,7 +195,7 @@ class SimulateData:
         )
 
     def sample_lognormal_indices(self, stim, num_CAPs):
-        mu = 600
+        mu = 1500 
         sigma = 2e5
         sigma_log = np.sqrt(np.log(1 + (sigma / mu**2)))
         mu_log = np.log(mu) - 0.5 * sigma_log**2
@@ -199,8 +204,8 @@ class SimulateData:
         )
 
     def sample_normal_indices(self, stim, num_CAPs):
-        mu = 600
-        sigma = 500
+        mu = 1500 
+        sigma = 50 
         return self.sample_with_min_spacing(
             stim, num_CAPs, distribution_func=norm.rvs, loc=mu, scale=sigma
         )
@@ -209,11 +214,15 @@ class SimulateData:
     def ensure_min_spacing(self, indices, min_spacing, num_CAPs):
         """ Ensure that indices have at least min_spacing points between them """
         indices = np.sort(indices)  # Sort indices for easier checking
+        
+        # remove negative indices 
+        indices = np.delete(indices, np.where(indices < 0)[0])
+
         spaced_indices = [indices[0]]
         for index in indices[1:]:
             if index - spaced_indices[-1] >= min_spacing:
                 spaced_indices.append(index)
-            if len(spaced_indices) >= num_CAPs:  # Stop if we've collected enough
+            if len(spaced_indices) >= num_CAPs:  # Stop if we have collected enough
                 break
         return np.array(spaced_indices, dtype=int)
 
@@ -222,10 +231,16 @@ class SimulateData:
 
         oversample_factor = 5  # Adjust this to reduce bias
         total_samples = num_CAPs * oversample_factor
+        runs = 0 
         while True:
             raw_indices = distribution_func(size=total_samples, **dist_params) + self.SA_indices[stim]
             valid_indices = self.ensure_min_spacing(raw_indices.astype(int), 90, num_CAPs)
             if len(valid_indices) == num_CAPs:
+                return valid_indices
+            runs += 1 
+            
+            # if five tried just return the amount it has found that fit the requirements 
+            if runs == 5: 
                 return valid_indices
 
     def add_CAP(self):
@@ -258,13 +273,13 @@ class SimulateData:
                     # indices = self.sample_uniform_indices(stim, num_CAPs)
                     indices = self.sample_with_min_spacing(stim, num_CAPs, distribution_func=np.random.uniform, low=0, high=1)
 
-                for cap in range(num_CAPs):
+                for cap in range(len(indices)):
                     # sample a CAP 
                     duration = np.random.randint(3, 8) + np.random.random()
                     CAP = self.get_CAP(duration)
 
                     # insert cap into true signal 
-                    if indices[cap] + len(CAP) > self.length:
+                    if indices[cap] + len(CAP) >= self.length:
                         n = self.true_signal[indices[cap]:, channel].shape[0]
                         self.true_signal[indices[cap]:, channel] += CAP[:n]
                     else: 
