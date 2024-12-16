@@ -195,7 +195,7 @@ class SimulateData:
         )
 
     def sample_lognormal_indices(self, stim, num_CAPs):
-        mu = 1500 
+        mu = 1200   
         sigma = 2e5
         sigma_log = np.sqrt(np.log(1 + (sigma / mu**2)))
         mu_log = np.log(mu) - 0.5 * sigma_log**2
@@ -204,8 +204,8 @@ class SimulateData:
         )
 
     def sample_normal_indices(self, stim, num_CAPs):
-        mu = 1500 
-        sigma = 50 
+        mu = 1500  
+        sigma = 70 
         return self.sample_with_min_spacing(
             stim, num_CAPs, distribution_func=norm.rvs, loc=mu, scale=sigma
         )
@@ -229,11 +229,11 @@ class SimulateData:
     def sample_with_min_spacing(self, stim, num_CAPs, distribution_func, **dist_params):
         """ General function to sample with spacing constraint """
 
-        oversample_factor = 5  # Adjust this to reduce bias
+        oversample_factor = 2  # Adjust this to reduce bias
         total_samples = num_CAPs * oversample_factor
         runs = 0 
         while True:
-            raw_indices = distribution_func(size=total_samples, **dist_params) + self.SA_indices[stim]
+            raw_indices = distribution_func(size=total_samples, **dist_params) + self.SA_indices[stim] + 300 # Add 300 to avoid overlap with SA
             valid_indices = self.ensure_min_spacing(raw_indices.astype(int), 90, num_CAPs)
             if len(valid_indices) == num_CAPs:
                 return valid_indices
