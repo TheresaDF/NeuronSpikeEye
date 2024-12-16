@@ -4,6 +4,7 @@ src.egg-info/*
 notebooks/*
 neuron_spike/*
 logs/* 
+results/*
 
 # files 
 *.pyc
