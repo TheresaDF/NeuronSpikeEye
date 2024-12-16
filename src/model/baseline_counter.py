@@ -15,8 +15,7 @@ def generate_inputs(snsr : np.ndarray, noise : np.ndarray, n_repeats : int = 10)
             for count in range(n_repeats): 
                 filename = f"sim_" + str(int(s*10)) + "_" + str(n[0]) + "_" + str(n[1]) + "_" + str(n[2]) + "_" + str(n[3]) + "_" + str(count)
                 n_dist = n_count 
-                counter = count 
-                all_inputs.append((filename, n_dist, counter))
+                all_inputs.append((filename, n_dist))
 
     return all_inputs 
 
@@ -31,7 +30,7 @@ def create_folders(noise_params : np.ndarray):
 def counter(args : tuple[str, int, int]) -> None: 
 
     # unpack arguments 
-    filename, noise_dist, count = args 
+    filename, noise_dist = args 
     
     # unpack parameters from filename 
     filename_parts = filename.split("_")
@@ -40,9 +39,11 @@ def counter(args : tuple[str, int, int]) -> None:
     hz_500 = int(filename_parts[3])
     white = int(filename_parts[4])
     high_freq = int(filename_parts[5])
+    count = int(filename_parts[6])
     
     # make simulated data
-    simulator = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_freq = 4, CAP_dist="lognormal")
+    seed = np.random.seed(hash(filename) % (2**32))
+    simulator = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_freq = 4, CAP_dist="lognormal", seed = seed)
     simulator.construct_signal()
 
     # filter signal 
@@ -73,10 +74,12 @@ def count_all(all_snrs : np.ndarray, noise : np.ndarray, n_repeats : int):
     
 
     # start processing all files 
-    with Pool() as pool:
-        # Process 2D and 3D data
-        result = pool.map(counter, inputs) 
+    # with Pool() as pool:
+    #     # Process 2D and 3D data
+    #     result = pool.map(counter, inputs) 
     
+    pool = Pool(processes=2)
+    pool.map(counter, inputs)
 
 if __name__ == "__main__":
     all_snrs = np.linspace(0.1, 1.9, num=18, endpoint=True)
@@ -95,3 +98,4 @@ if __name__ == "__main__":
 
     # run the counting 
     count_all(all_snrs, noise_params, n_repeats)
+
