@@ -56,7 +56,7 @@ def count_caps(simulator : SimulateData, filtered_signal : np.ndarray) -> tuple[
             rms_components = np.sqrt(np.mean(components**2))
 
             # save the number of estimates bins
-            all_est_counts[channel, bin_idx] = len(np.where((components > 5* rms_components) & (components > 25))[0])
+            all_est_counts[channel, bin_idx] = len(np.where((components > 4 * rms_components) & (components > 20))[0])
             
             # get the number of true counts 
             all_true_counts[channel, bin_idx] = CAP_length(simulator.CAP_indices[bin_idx][channel])
