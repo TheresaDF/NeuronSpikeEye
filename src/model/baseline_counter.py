@@ -74,12 +74,12 @@ def count_all(all_snrs : np.ndarray, noise : np.ndarray, n_repeats : int):
     
 
     # start processing all files 
-    # with Pool() as pool:
-    #     # Process 2D and 3D data
-    #     result = pool.map(counter, inputs) 
+    with Pool() as pool:
+        # Process 2D and 3D data
+        result = pool.map(counter, inputs) 
     
-    pool = Pool(processes=2)
-    pool.map(counter, inputs)
+    # pool = Pool(processes=2)
+    # pool.map(counter, inputs)
 
 if __name__ == "__main__":
     all_snrs = np.linspace(0.1, 1.9, num=18, endpoint=True)
