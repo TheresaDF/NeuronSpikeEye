@@ -46,7 +46,7 @@ def count_caps(simulator : SimulateData, filtered_signal : np.ndarray) -> tuple[
 
             for coef in range(len(scales)): 
                 rms = np.sqrt(np.mean(np.abs(coefficients[coef])**2))
-                peaks_coef, _ = find_peaks(np.abs(coefficients[coef]), height = 2*rms, distance = 30)
+                peaks_coef, _ = find_peaks(np.abs(coefficients[coef]), height = 1.5*rms, distance = 30)
                 
                 snakes[coef, peaks_coef] = 1
 
