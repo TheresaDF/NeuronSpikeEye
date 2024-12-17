@@ -42,7 +42,8 @@ def counter(args : tuple[str, int, int]) -> None:
     count = int(filename_parts[6])
     
     # construct save name 
-    save_name = f"../../results/baseline/noise_config_{noise_dist}/snr_{int(snr*10)}_count_{count}.pkl"
+    save_name = "../../../../../../../../work3/s194329/results/baseline/noise_config_{noise_dist}/snr_{int(snr*10)}_count_{count}.pkl"
+    # save_name = f"../../results/baseline/noise_config_{noise_dist}/snr_{int(snr*10)}_count_{count}.pkl"
 
     if os.path.exists(save_name): 
         return
