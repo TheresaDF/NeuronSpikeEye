@@ -46,7 +46,7 @@ def counter(args : tuple[str, int, int]) -> None:
     # save_name = f"../../results/baseline/noise_config_{noise_dist}/snr_{int(snr*10)}_count_{count}.pkl"
 
     if os.path.exists(save_name): 
-        print(f"Skipping save_name : {save_name} as it already exists")
+        print(f"Skipping save_name : {save_name}")
         return
 
     # make simulated data
@@ -68,8 +68,6 @@ def counter(args : tuple[str, int, int]) -> None:
     d['true_signal'] = simulator.true_signal
     d['filtered_signal'] = filtered_signal
 
-    
-
     # save files 
     with open(save_name, 'wb') as output_file: 
         pickle.dump(d, output_file)
@@ -89,13 +87,13 @@ def count_all(all_snrs : np.ndarray, noise : np.ndarray, n_repeats : int):
     # pool.map(counter, inputs)
 
 if __name__ == "__main__":
-    all_snrs = np.linspace(0.1, 1.9, num=18, endpoint=True)
+    all_snrs = np.array(([0.1, 0.5, 1, 1.5, 2]))
     noise_params = np.array([[200, 1, 10, 20], 
-                            [300, 5, 10, 20], 
-                            [200, 1, 10, 20], 
+                            [300, 1, 10, 20], 
+                            [200, 5, 10, 20], 
                             [200, 1, 30, 20],
                             [200, 1, 10, 40]])
-    n_repeats = 10 
+    n_repeats = 5 
     
     # create folders to save results to 
     create_folders(noise_params)
