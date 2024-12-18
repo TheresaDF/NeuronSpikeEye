@@ -139,6 +139,20 @@ def compute_num_components(data, threshold = 0.95, to_plot = False) -> np.ndarra
 
     return idx
 
+def get_acf_signal(signal : np.ndarray, stim_freq : int = 10, length : int = 300000, duration : int = 10) -> float:
+    """
+    Function to compute the acf of the signal
+    """
+    all_acfs = np.zeros(32)
+    for channel in range(32): 
+        peaks, _ = find_peaks(signal[:, channel], height = 300, distance = length / (stim_freq * duration))
+        signal_bins = bin_data(signal[:, channel], peaks).ravel()
+        acf_signal_tmp = acf(signal_bins, nlags=20*30*3)
+        acf_signal = np.mean([acf_signal_tmp[20*30], acf_signal_tmp[20*30 * 2], acf_signal_tmp[20*30 * 3]])
+        all_acfs[channel] = acf_signal
+
+    return np.mean(all_acfs)
+
 def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, duration : int = 10) -> np.ndarray:
     """ Use ICA to filtef data"""
 
@@ -147,12 +161,19 @@ def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, durat
     data = butter_lowpass(data)
     data = smooth_signal(data, window_len=5)
 
-    n_comp = 32 
-    acf_prev = None 
-
+    # find acf in original signal 
     data_filtered = data 
     peaks, _ = find_peaks(data[:, 0], height = 300, distance = length / (stim_freq * duration))
-    for _ in range(5):  
+    acf_signal = get_acf_signal(data_filtered, stim_freq = stim_freq, length = length, duration = duration)
+
+    print(f"Original ACF : {acf_signal}")
+    
+    # define parameters 
+    n_comp = 32 
+    ratio = 1 
+    count = 0 
+    # start loop 
+    while (ratio > 0.65) & (count < 10):
         # perform ICA
         ica, ica_components = perform_ICA(data_filtered, n_comp)
 
@@ -161,17 +182,17 @@ def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, durat
 
         # remove component 
         data_filtered = remove_ica_components(ica, ica_components, bad_component)
+        acf_curr = get_acf_signal(data_filtered)
 
         # decrement number of components 
         n_comp -= 1 
 
         # compute difference in acf 
-        print(acf_curr, acf_prev)
-        diff = acf_prev - acf_curr if acf_prev != None else 0 
-        if diff > 0.005: 
-            break 
-        
-        acf_prev = acf_curr 
+        ratio = acf_curr / acf_signal 
+        count += 1         
+
+        print("new acf : ", acf_curr)
+        print(f"ratio : {ratio}")
 
     # smooth end result again 
     return data_filtered
