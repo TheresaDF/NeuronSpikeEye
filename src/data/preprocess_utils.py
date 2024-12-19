@@ -29,7 +29,7 @@ def perform_ICA(data, n_components = 32):
     """
     Function to perform ICA on the data
     """
-    ica = FastICA(n_components = n_components, whiten_solver = "svd", max_iter = 1000)
+    ica = FastICA(n_components = n_components, whiten_solver = "svd", max_iter = 1000, random_state = 42)
     S_ = ica.fit_transform(data)
     return ica, S_
 
