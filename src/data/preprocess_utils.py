@@ -102,43 +102,6 @@ def smooth_signal(data : np.ndarray, window_len : int = 15) -> np.ndarray:
 
     return data 
 
-def compute_num_components(data, threshold = 0.95, to_plot = False) -> np.ndarray:
-    """
-    Function to compute the number of components to keep
-    """
-   
-    n_comp = np.arange(1, data.shape[1]+1)
-    loss = np.zeros(len(n_comp))
-    for i, n in enumerate(n_comp):
-        ica, ica_components = perform_ICA(data, n_components = n)
-
-        # reconstruct 
-        reconstruction = ica.inverse_transform(ica_components)
-
-        # compute scaling factor for scaled MSE 
-        alpha = np.mean(data * reconstruction) / np.mean(reconstruction ** 2)
-
-        # compute reconstruction loss 
-        loss_current = np.mean((data - alpha * reconstruction) ** 2)
-        loss[i] = loss_current
-
-    loss = np.cumsum(loss)
-    loss = loss / loss[-1]
-
-    # compute how many components to keep
-    idx = np.where(loss < threshold)[0][-1] + 1
-
-    if to_plot:
-        plt.figure(figsize = (10, 5))
-        plt.plot(n_comp, loss, color = "darkblue", marker = "o")
-        plt.plot(np.arange(-1, data.shape[1]+2), np.ones(len(n_comp)+3) * threshold, '--', color = "gray")
-        plt.xlabel("Number of components")
-        plt.ylabel("Reconstruction loss")
-        plt.xlim([0, data.shape[1]])
-        plt.show()
-
-    return idx
-
 def get_acf_signal(signal : np.ndarray, stim_freq : int = 10, length : int = 300000, duration : int = 10) -> float:
     """
     Function to compute the acf of the signal
