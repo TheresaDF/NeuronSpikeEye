@@ -19,7 +19,7 @@ def bin_data(channel : np.ndarray, peaks : list) -> np.ndarray:
     return binned_data
 
 
-def count_caps_wavelet(simulator : SimulateData, filtered_signal : np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def count_caps_baseline(simulator : SimulateData, filtered_signal : np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """ Function that estimates the number of CAPs in the signal """
 
     # allocate memory for the counts
