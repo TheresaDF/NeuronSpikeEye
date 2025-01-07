@@ -15,7 +15,6 @@ class SimulateData:
                        noise_params : list[float, float, float, float] = [200, 1, 10, 1.5],
                        stim_freq : int = 10, 
                        stim_amp : int = 6000, 
-                       CAP_freq : int = 5,
                        CAP_dist : str = "uniform", 
                        seed = None) -> None:
         """
@@ -35,7 +34,6 @@ class SimulateData:
         self.noise_params = noise_params
         
         self.CAP_dist = CAP_dist
-        self.CAP_freq = CAP_freq
         self.CAP_indices = None 
 
         self.stim_freq = stim_freq
@@ -48,6 +46,7 @@ class SimulateData:
         self.fs = 3*1e4
         self.duration = self.length // self.fs 
         self.num_stims = int(self.duration * self.stim_freq)
+        self.channel_varier = np.abs(np.random.normal(loc = 1.5, scale = 5, size = self.num_channels)) 
 
         self.signal = None 
         self.true_signal = None
@@ -191,7 +190,7 @@ class SimulateData:
 
     def sample_uniform_indices(self, stim, num_CAPs):
         return self.sample_with_min_spacing(
-            stim, num_CAPs, distribution_func=np.random.uniform, low=0, high=1
+            stim, num_CAPs, distribution_func=np.random.uniform, low=0, high=2000 # latency of a few ms 
         )
 
     def sample_lognormal_indices(self, stim, num_CAPs):
@@ -255,12 +254,13 @@ class SimulateData:
         for channel in range(self.num_channels):
             for stim in range(self.num_stims):
                 # compute change of there occuring a CAP signal
-                if np.random.rand() > 0.3: 
+                if np.random.rand() > 0.3 * self.channel_varier[channel] - 1: 
                     continue 
                
                 # compute the number of CAP signals to add from CAP freq and segment length
-                num_CAPs = max(int(segment_length / 3000 * self.CAP_freq) + np.random.choice([-1, 0, 1], 1)[0], 1)
-                
+                # num_CAPs = max(int(segment_length / 3000 * self.CAP_freq) + np.random.choice([-1, 0, 1], 1)[0], 1)
+                num_CAPs = max(int(np.random.choice(np.arange(1, 8), 1)[0] * self.channel_varier[channel]), 1)
+
                 if self.CAP_dist == "lognormal":
                     # indices = self.sample_lognormal_indices(stim, num_CAPs)
                     indices = self.sample_with_min_spacing(stim, num_CAPs, distribution_func=lognorm.rvs, s=2, scale=600)
