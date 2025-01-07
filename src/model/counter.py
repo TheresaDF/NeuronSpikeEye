@@ -24,7 +24,7 @@ def generate_inputs(snsr : np.ndarray, noise : np.ndarray, n_repeats : int = 10)
 def create_folders(noise_params : np.ndarray):
     os.makedirs("results", exist_ok=True)
     for i in range(noise_params.shape[0]): 
-        os.makedirs(f"results/noise_config_{i}")
+        os.makedirs(f"results/noise_config_{i}", exist_ok=True)
 
 
 def count_true_caps(simulator : SimulateData) -> np.ndarray:
@@ -57,7 +57,7 @@ def counter(args : tuple[str, int, int]) -> None:
     count = int(filename_parts[6])
     
     # construct save name 
-    save_name = f"../../../../../../../../work3/s194329/results/baseline/noise_config_{noise_dist}/snr_{int(snr*10)}_count_{count}.pkl"
+    save_name = f"../../../../../../../../work3/s194329/results/noise_config_{noise_dist}/snr_{int(snr*10)}_count_{count}.pkl"
     # save_name = f"../../results/baseline/noise_config_{noise_dist}/snr_{int(snr*10)}_count_{count}.pkl"
 
     if os.path.exists(save_name): 
