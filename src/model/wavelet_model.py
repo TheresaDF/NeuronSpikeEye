@@ -85,7 +85,7 @@ def count_caps_wavelet(simulator : SimulateData, filtered_signal : np.ndarray) -
             accepted_coefficients = get_accepted_coefficients(coefficients, scales=np.arange(1, 128))
 
             # find number of connected components
-            labels = label(accepted_coefficients)
+            labels = label(np.abs(accepted_coefficients))
             
             # save the number of estimates caps 
             all_est_counts[channel, bin_idx] = np.max(labels)
