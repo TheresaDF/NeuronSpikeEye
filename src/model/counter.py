@@ -22,9 +22,11 @@ def generate_inputs(snsr : np.ndarray, noise : np.ndarray, n_repeats : int = 10)
 
 
 def create_folders(noise_params : np.ndarray):
-    os.makedirs("results", exist_ok=True)
+    prefix = "../../../../../../../../work3/s194329/"
+    os.makedirs(prefix + "results", exist_ok=True)
+    
     for i in range(noise_params.shape[0]): 
-        os.makedirs(f"results/noise_config_{i}", exist_ok=True)
+        os.makedirs(f"{prefix}results/noise_config_{i}", exist_ok=True)
 
 
 def count_true_caps(simulator : SimulateData) -> np.ndarray:
@@ -65,19 +67,22 @@ def counter(args : tuple[str, int, int]) -> None:
         return
 
     # make simulated data
-    seed = np.random.seed(hash(filename) % (2**32))
+    seed = hash(filename) % (2**32)
     simulator = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist="uniform", seed = seed)
     simulator.construct_signal()
 
     # filter signal 
+    print("filter signal")
     filtered_signal = filter(simulator.signal)
 
     # count CAPS using different methods 
+    print("baseline and wavelet")
     estimated_caps_baseline = count_caps_baseline(simulator, filtered_signal)
     estimated_caps_wavelet = count_caps_wavelet(simulator, filtered_signal)
 
     # make new instance of simulator for SVM to train 
-    simulator_train = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist="uniform", seed = seed+1)
+    print("svm")
+    simulator_train = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist="uniform", seed = seed-1)
     filtered_signal_train = filter(simulator_train.signal)
     estimated_caps_svm = count_caps_svm(simulator_train, simulator, filtered_signal_train, filtered_signal)
 
@@ -95,6 +100,7 @@ def counter(args : tuple[str, int, int]) -> None:
     d['filtered_signal'] = filtered_signal
 
     # save files 
+    print(f"saving {save_name}")
     with open(save_name, 'wb') as output_file: 
         pickle.dump(d, output_file)
     output_file.close()
