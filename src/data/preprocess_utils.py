@@ -76,10 +76,10 @@ def find_bad_channels(data : np.ndarray, peaks : np.ndarray, n_comp : int) -> tu
         # bin segment 
         bins = bin_data(data[:, i], peaks).ravel()
 
-        acf_tmp = acf(bins, nlags=20*30*3)
-        acfs_all[i, 0] = acf_tmp[20*30]
-        acfs_all[i, 1] = acf_tmp[20*30 * 2]
-        acfs_all[i, 2] = acf_tmp[20*30 * 3] 
+        acf_tmp = acf(bins, nlags=900)
+        acfs_all[i, 0] = np.abs(acf_tmp[300])
+        acfs_all[i, 1] = np.abs(acf_tmp[600])
+        acfs_all[i, 2] = np.abs(acf_tmp[900] )
     
     # bad_components = np.where(np.mean(acfs_all, axis = 1) > np.percentile(np.mean(acfs_all, axis = 1), 75))[0]
     bad_component = np.argmax(np.mean(acfs_all, axis = 1))
@@ -108,7 +108,7 @@ def get_acf_signal(signal : np.ndarray, stim_freq : int = 10, length : int = 300
     """
     all_acfs = np.zeros(32)
     for channel in range(32): 
-        peaks, _ = find_peaks(signal[:, channel], height = 300, distance = length / (stim_freq * duration))
+        peaks, _ = find_peaks(signal[:, channel], height = 300, distance = length / (stim_freq * duration) - stim_freq * duration)
         signal_bins = bin_data(signal[:, channel], peaks).ravel()
         acf_signal_tmp = acf(signal_bins, nlags=20*30*3)
         acf_signal = np.mean([acf_signal_tmp[20*30], acf_signal_tmp[20*30 * 2], acf_signal_tmp[20*30 * 3]])
@@ -116,7 +116,7 @@ def get_acf_signal(signal : np.ndarray, stim_freq : int = 10, length : int = 300
 
     return np.mean(all_acfs)
 
-def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, duration : int = 10) -> np.ndarray:
+def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, duration : int = 10, threshold : float = 0.65) -> np.ndarray:
     """ Use ICA to filtef data"""
 
     # smooth and filter the data
@@ -126,7 +126,11 @@ def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, durat
 
     # find acf in original signal 
     data_filtered = data 
-    peaks, _ = find_peaks(data[:, 0], height = 300, distance = length / (stim_freq * duration))
+    channel = 0 
+    peaks = []
+    while len(peaks) < stim_freq * duration - 1: 
+        peaks, _ = find_peaks(data_filtered[:, channel], height = 300, distance = length / (stim_freq * duration) - stim_freq * duration)
+        channel += 1
     acf_signal = get_acf_signal(data_filtered, stim_freq = stim_freq, length = length, duration = duration)
 
     print(f"Original ACF : {acf_signal}")
@@ -135,8 +139,9 @@ def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, durat
     n_comp = 32 
     ratio = 1 
     count = 0 
+
     # start loop 
-    while (ratio > 0.65) & (count < 10):
+    while (ratio > threshold) & (count < 10):
         # perform ICA
         ica, ica_components = perform_ICA(data_filtered, n_comp)
 
