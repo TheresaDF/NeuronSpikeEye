@@ -21,6 +21,49 @@ def bin_data(channel : np.ndarray, peaks : list) -> np.ndarray:
     return binned_data
 
 
+def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray) -> np.ndarray:
+    accepted_coefficients = np.zeros_like(coefficients)
+    spike_indicators = np.zeros(coefficients.shape[1], dtype = bool)
+
+    # loop over scales 
+    for j in range(len(scales)): 
+        # extract current coefficients
+        x = coefficients[j]
+
+        # estimate noise level 
+        sigma_j = np.median(np.abs(x - np.mean(x))) / 0.6745 
+
+        # compute hard threshold 
+        T = np.sqrt(2 * np.log(len(x))) * sigma_j
+
+        # find indices of coefficients that exceed threshold
+        index = np.where(np.abs(x) > T)[0]
+
+        if len(index) > 0: 
+            # compute sample mean 
+            mu = np.mean(np.abs(x[index]))
+
+            # compute probabilities
+            p_spikes = len(index) / len(x)
+            p_noise = 1 - p_spikes
+
+            # compute gamma
+            log_gamma = 36.7368 * (0) + np.log(p_noise / p_spikes)
+
+            # compute acceptance threshold
+            theta = mu / 2 + sigma_j**2 / mu * log_gamma
+
+            # apply acceptance threshold
+            accepted_coefficients[j] = x * (np.abs(x) > theta)
+
+        # needed for arrival time analysis (not used yet)
+        non_zero_indices = accepted_coefficients[j] != 0
+        non_zero_indices = spike_indicators | non_zero_indices
+        spike_indicators = non_zero_indices
+
+    return accepted_coefficients
+    
+
 def count_caps_wavelet(simulator : SimulateData, filtered_signal : np.ndarray) -> np.ndarray:
     """ Function that estimates the number of CAPs in the signal """
 
@@ -38,23 +81,14 @@ def count_caps_wavelet(simulator : SimulateData, filtered_signal : np.ndarray) -
             # apply wavelet transform
             coefficients, _ = pywt.cwt(bins[:, bin_idx], scales=np.arange(1, 128), wavelet='cgau2', sampling_period=1/30000)
             
-            # find local maxima at all scales 
-            scales = np.arange(1, 128)
-            snakes = np.zeros((len(scales), bins.shape[0]))
+            # get accepted coefficients
+            accepted_coefficients = get_accepted_coefficients(coefficients, scales=np.arange(1, 128))
 
-            for coef in range(len(scales)): 
-                rms = np.sqrt(np.mean(np.abs(coefficients[coef])**2))
-                peaks_coef, _ = find_peaks(np.abs(coefficients[coef]), height = 1.5*rms, distance = 30)
-                
-                snakes[coef, peaks_coef] = 1
-
-            # count the number of peaks in the bin (length and outlier)
-            labels = label(snakes)
-            components = np.bincount(labels.flat)[1:]
-            rms_components = np.sqrt(np.mean(components**2))
-
-            # save the number of estimates bins
-            all_est_counts[channel, bin_idx] = len(np.where((components > 4 * rms_components) & (components > 20))[0])
+            # find number of connected components
+            labels = label(accepted_coefficients)
+            
+            # save the number of estimates caps 
+            all_est_counts[channel, bin_idx] = np.max(labels)
 
 
     return all_est_counts
