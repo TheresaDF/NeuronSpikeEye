@@ -1,6 +1,5 @@
 import pywt 
 import numpy as np 
-from tqdm import tqdm
 from skimage.measure import label   
 from scipy.signal import find_peaks
 from src.data.create_simulated_data import SimulateData
@@ -71,7 +70,7 @@ def count_caps_wavelet(simulator : SimulateData, filtered_signal : np.ndarray) -
     all_est_counts = np.zeros((simulator.num_channels, int(simulator.duration * simulator.stim_freq)))
 
     # loop over all channels
-    for channel in tqdm(range(simulator.num_channels)):
+    for channel in range(simulator.num_channels):
         # find the SA and bin accordingly
         peaks, _ = find_peaks(simulator.signal[:, channel], height = 300, distance = 300000 / (simulator.stim_freq * simulator.duration) - simulator.stim_freq * simulator.duration)
         bins = bin_data(filtered_signal[:, channel], peaks).T 
