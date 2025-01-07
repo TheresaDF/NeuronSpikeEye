@@ -25,7 +25,7 @@ def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray) -> tup
     Make matrices for training and testing
     """
 
-    y = np.array(([np.sum([CAP_length(simulator.CAP_indices[i][channel]) for i in range(simulator.stim_freq * simulator.duration)]) 
+    y = np.array(([np.sum([CAP_length(simulator.CAP_indices[i][channel]) for i in range(int(simulator.stim_freq * simulator.duration))]) 
                    for channel in range(simulator.num_channels)])).ravel()
 
     X = np.zeros((simulator.num_channels, simulator.stim_freq * simulator.duration*2400))
