@@ -1,6 +1,7 @@
-from src.model.wavelet_model import count_caps_wavelet
-from src.data.create_simulated_data import SimulateData
 from src.model.baseline_model import count_caps_baseline
+from src.model.wavelet_model import count_caps_wavelet
+from src.model.svm_model import count_caps_svm
+from src.data.create_simulated_data import SimulateData
 from src.data.preprocess_utils import filter 
 from multiprocessing import Pool
 import numpy as np 
@@ -22,9 +23,8 @@ def generate_inputs(snsr : np.ndarray, noise : np.ndarray, n_repeats : int = 10)
 
 def create_folders(noise_params : np.ndarray):
     os.makedirs("results", exist_ok=True)
-    os.makedirs("results/baseline", exist_ok=True)
     for i in range(noise_params.shape[0]): 
-        os.makedirs(f"results/baseline/noise_config_{i}")
+        os.makedirs(f"results/noise_config_{i}")
 
 
 def count_true_caps(simulator : SimulateData) -> np.ndarray:
@@ -66,22 +66,29 @@ def counter(args : tuple[str, int, int]) -> None:
 
     # make simulated data
     seed = np.random.seed(hash(filename) % (2**32))
-    simulator = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_freq = 4, CAP_dist="lognormal", seed = seed)
+    simulator = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist="uniform", seed = seed)
     simulator.construct_signal()
 
     # filter signal 
     filtered_signal = filter(simulator.signal)
 
     # count CAPS using different methods 
-    estimated_caps = count_caps_baseline(simulator, filtered_signal)
-    estimated_caps = count_caps_wavelet(simulator, filtered_signal)
+    estimated_caps_baseline = count_caps_baseline(simulator, filtered_signal)
+    estimated_caps_wavelet = count_caps_wavelet(simulator, filtered_signal)
+
+    # make new instance of simulator for SVM to train 
+    simulator_train = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist="uniform", seed = seed+1)
+    filtered_signal_train = filter(simulator_train.signal)
+    estimated_caps_svm = count_caps_svm(simulator_train, simulator, filtered_signal_train, filtered_signal)
 
     # count true CAPS
     true_caps = count_true_caps(simulator)
 
     # save to dictionary 
     d = {}
-    d['estimated'] = estimated_caps
+    d['estimated_baseline'] = estimated_caps_baseline 
+    d['estimated_wavelet'] = estimated_caps_wavelet 
+    d['estimated_svm'] = estimated_caps_svm  
     d['true'] = true_caps
     d['obs_signal'] = simulator.signal 
     d['true_signal'] = simulator.true_signal
