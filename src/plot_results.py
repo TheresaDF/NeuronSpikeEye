@@ -29,7 +29,7 @@ rcParams = {
 }
 plt.rcParams.update(rcParams)
 
-figdir = "../results/"
+figdir = "results/"
 def savefig(fig, name, width=6, height=3):
     # apply rcParams
     fig.set_size_inches(width, height)
@@ -94,6 +94,7 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
     return fig
 
 def generate_plots(path):
+    os.makedirs("results", exist_ok = True)
     noise_dist = os.listdir(path)
     for noise in noise_dist:
         fig = plot_results(path + noise)
@@ -101,4 +102,5 @@ def generate_plots(path):
         savefig(fig, name)
 
 if __name__ == "__main__": 
-    path = "../results/"
+    path = f"../../../../../../work3/s194329/results/"
+    generate_plots(path)
