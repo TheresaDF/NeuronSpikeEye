@@ -83,6 +83,7 @@ def counter(args : tuple[str, int, int]) -> None:
     # make new instance of simulator for SVM to train 
     print("svm")
     simulator_train = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist="uniform", seed = seed-1)
+    simulator_train.construct_signal()
     filtered_signal_train = filter(simulator_train.signal)
     estimated_caps_svm = count_caps_svm(simulator_train, simulator, filtered_signal_train, filtered_signal)
 
