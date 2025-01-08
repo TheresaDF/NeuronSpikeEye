@@ -28,7 +28,7 @@ def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray) -> tup
     y = np.array(([np.sum([CAP_length(simulator.CAP_indices[i][channel]) for i in range(int(simulator.stim_freq * simulator.duration))]) 
                    for channel in range(simulator.num_channels)])).ravel()
 
-    X = np.zeros((simulator.num_channels, simulator.stim_freq * simulator.duration*2400))
+    X = np.zeros((simulator.num_channels, int(simulator.stim_freq * simulator.duration*2400)))
     for channel in range(simulator.num_channels):
         peaks, _ = find_peaks(filtered_signal[:, channel], height = 300, distance = 300000 / (simulator.stim_freq * simulator.duration) - simulator.stim_freq * simulator.duration)
         data = bin_data(filtered_signal[:, channel], peaks)
