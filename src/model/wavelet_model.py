@@ -1,6 +1,6 @@
 import pywt 
 import numpy as np 
-from skimage.measure import label   
+from skimage.morphology import binary_erosion
 from scipy.signal import find_peaks
 from src.data.create_simulated_data import SimulateData
 
@@ -60,7 +60,63 @@ def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray) ->
         non_zero_indices = spike_indicators | non_zero_indices
         spike_indicators = non_zero_indices
 
-    return accepted_coefficients
+    # clean up spike indicators 
+    spikes_eroded = binary_erosion(spike_indicators.astype(int), np.ones(5))
+
+    return spikes_eroded.astype(int)
+
+def parse(spike_indicators : np.ndarray, fs : int, width : tuple): 
+    # define refractory period 
+    refract_len = round(1.5 * width[1] * fs)     
+
+    # merge spikes closer than merge 
+    merge = round(np.mean(width) * fs)       
+    
+    # discard spikes at beginning and end
+    spike_indicators[0] = 0 
+    spike_indicators[-1] = 0 
+
+    # locate the ones 
+    ind_ones = np.where(spike_indicators == 1)[0]
+
+    if len(ind_ones) == 0:
+        TE=[]
+    else: 
+        tmp=np.diff(spike_indicators);  
+        n_sp = np.sum(tmp == 1); 
+        
+        # index of the beginning of a spike
+        lead_t = np.where(tmp == 1)[0]
+
+        # index of the end of the spike
+        lag_t = np.where(tmp == -1)[0] 
+
+        te = np.zeros(n_sp)
+        for i in range(n_sp):
+            te[i] = np.ceil(np.mean([lead_t[i], lag_t[i]]))
+        
+        # init counter 
+        i = 0 
+        while True: 
+            if i > len(te) - 2: 
+                break
+            else: 
+                diff = te[i+1] - te[i]
+                if (diff < refract_len) & (diff > merge):  
+                    # discard the spike
+                    te = np.delete(te, i+1)
+                elif diff <= merge: 
+                    # merge the spikes
+                    te[i] = np.ceil(np.mean([te[i], te[i+1]]))
+                    
+                    # discard the spike
+                    te = np.delete(te, i+1)
+                else: 
+                    i += 1 
+        TE=te 
+
+    return TE
+
     
 
 def count_caps_wavelet(simulator : SimulateData, filtered_signal : np.ndarray) -> np.ndarray:
@@ -81,13 +137,13 @@ def count_caps_wavelet(simulator : SimulateData, filtered_signal : np.ndarray) -
             coefficients, _ = pywt.cwt(bins[:, bin_idx], scales=np.arange(1, 128), wavelet='cgau2', sampling_period=1/30000)
             
             # get accepted coefficients
-            accepted_coefficients = get_accepted_coefficients(coefficients, scales=np.arange(1, 128))
+            spike_indicators = get_accepted_coefficients(coefficients, scales=np.arange(1, 128))
 
-            # find number of connected components
-            labels = label(np.abs(accepted_coefficients))
+            # merge and parse the spikes
+            TE = parse(spike_indicators, fs=30, width=(1, 1))
             
             # save the number of estimates caps 
-            all_est_counts[channel, bin_idx] = np.max(labels)
+            all_est_counts[channel, bin_idx] = len(TE)
 
 
     return all_est_counts
