@@ -77,7 +77,7 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
     offset = 0.1  # Offset for separating dots
 
     ax.errorbar(x - offset, baseline_mean, yerr=baseline_ci, fmt='o', label='Baseline', color='darkblue', capsize=5)
-    ax.errorbar(x, wavelet_mean, yerr=wavelet_ci, fmt='o', label='Wavelet', color='darkgreen', capsize=5)
+    ax.errorbar(x, wavelet_mean, yerr=wavelet_ci, fmt='o', label='Wavelet', color='pink', capsize=5)
     ax.errorbar(x + offset, svm_mean, yerr=svm_ci, fmt='o', label='SVM', color='darkred', capsize=5)
 
     # Add labels and legend
