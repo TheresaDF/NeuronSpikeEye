@@ -35,9 +35,10 @@ def count_caps_baseline(simulator : SimulateData, filtered_signal : np.ndarray) 
         for bin_idx in range(bins.shape[1]):
             # find threshold of 4.5 times rms 
             rms = np.sqrt(np.mean(bins[:, bin_idx]**2))
-            peaks, _ = find_peaks(bins[:, bin_idx], height = 4.5*rms, distance = 30)
+            peaks_p, _ = find_peaks(bins[:, bin_idx], height = 4.5*rms, distance = 30)
+            peaks_m, _ = find_peaks(-bins[:, bin_idx], height = 4.5*rms, distance = 30)
 
             # save results 
-            all_est_counts[channel, bin_idx] = len(peaks)
+            all_est_counts[channel, bin_idx] = len(peaks_p) + len(peaks_m)
 
     return all_est_counts
