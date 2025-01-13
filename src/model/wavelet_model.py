@@ -119,8 +119,10 @@ def parse(spike_indicators : np.ndarray, fs : int, width : tuple):
 
     
 
-def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, num_channels : int = 32, duration : int = 10, stim_freq : int = 10) -> np.ndarray:
+def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, duration : int = 10, stim_freq : int = 10) -> np.ndarray:
     """ Function that estimates the number of CAPs in the signal """
+    # get number of channels 
+    num_channels = filtered_signal.shape[1]
 
     # allocate memory for the counts
     all_est_counts = np.zeros((num_channels, int(duration * stim_freq)))
