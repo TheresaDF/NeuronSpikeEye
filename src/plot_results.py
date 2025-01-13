@@ -84,8 +84,9 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
     ax.set_xticks(x)
     ax.set_xticklabels([f"{snr}" for snr in snrs])
     ax.set_xlabel(r"$\alpha$ Levels")
-    ax.set_ylabel("Relative Error [%]")
+    ax.set_ylabel(r"Relative Error [$\%$]")
     ax.set_title("Comparison of Error for Different Methods")
+    ax.set_ylim([-100, 30])
     ax.legend()
 
     plt.tight_layout()
@@ -93,14 +94,14 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
 
     return fig
 
-def generate_plots(path):
+def generate_plots(path, n_repeats : int = 5):
     os.makedirs("results", exist_ok = True)
     noise_dist = os.listdir(path)
     for noise in noise_dist:
-        fig = plot_results(path + noise)
+        fig = plot_results(path + noise, n_repeats = n_repeats)
         name = "noise_" + noise
         savefig(fig, name)
 
 if __name__ == "__main__": 
     path = f"../../../../../../work3/s194329/results/"
-    generate_plots(path)
+    generate_plots(path, n_repeats = 50)
