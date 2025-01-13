@@ -14,17 +14,13 @@ def create_folders() -> None:
     prefix = "../../../../../../../../work3/s194329/"
     os.makedirs(prefix + "results", exist_ok=True)
 
-    # make folders for the two ramps we test 
-    os.makedirs(prefix + "results/ramp9", exist_ok=True)
-    os.makedirs(prefix + "results/ramp7", exist_ok=True)
-
 def counter(args : tuple[str]) -> None: 
 
     # unpack arguments 
     path = args
     
     # construct save name 
-    save_name = f"../../../../../../../../work3/s194329/results/ramp{path.split(".")[-2][-1]}/ramp{path.split(".")[-2][-1]}.pkl"
+    save_name = f"../../../../../../../../work3/s194329/results/ramp{path.split(".")[-2][-1]}.pkl"
 
     if os.path.exists(save_name): 
         print(f"Skipping save_name : {save_name}")
@@ -81,6 +77,6 @@ if __name__ == "__main__":
     os.chdir("src/data")
 
     # run the counting 
-    paths = ["../../data/raw/Ramp data/Eye 5/ramp_file7.ns5", "../../data/raw/Ramp data/Eye 5/ramp_file9.ns5"]
+    paths = [f"../../data/raw/Ramp data/Eye 5/ramp_file{i}.ns5" for i in range(2, 12)]
     count_all(paths)
 
