@@ -136,7 +136,7 @@ def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, durat
     idx = []
     peaks = []
     for channel in range(32):
-        peaks, _ = find_peaks(data_filtered[:, channel], height = 300, distance = length / (stim_freq * duration) - stim_freq * duration)
+        peaks, _ = find_peaks(data_filtered[:, channel], height = 1000, distance = length / (stim_freq * duration) - stim_freq * duration)
         if len(peaks) < 99:
             idx.append(channel)
     
