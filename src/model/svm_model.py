@@ -20,10 +20,11 @@ def bin_data(channel : np.ndarray, peaks : list) -> np.ndarray:
 
 CAP_length = lambda x: len(x) if type(x) == list else 0
 
-def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, num_channels : int = 32, duration : int = 10, stim_freq : int = 10) -> tuple[np.ndarray, np.ndarray]:
+def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, duration : int = 10, stim_freq : int = 10) -> tuple[np.ndarray, np.ndarray]:
     """
     Make matrices for training and testing
     """
+    num_channels = filtered_signal.shape[1]
     if simulator is not None:
         y = np.array(([np.sum([CAP_length(simulator.CAP_indices[i][channel]) for i in range(int(stim_freq * duration))]) 
                     for channel in range(num_channels)])).ravel()

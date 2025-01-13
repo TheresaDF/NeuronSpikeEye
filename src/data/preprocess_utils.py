@@ -58,7 +58,7 @@ def bin_data(channel, peaks):
     """
     Bin data into 80ms bins
     """
-    binned_data = np.zeros((100, 2400))
+    binned_data = np.zeros((len(peaks), 2400))
     for c, peak in enumerate(peaks):
         if c == 100: break 
         if (c == 99) & (peak+2700 > len(channel)):
@@ -106,15 +106,22 @@ def get_acf_signal(signal : np.ndarray, stim_freq : int = 10, length : int = 300
     """
     Function to compute the acf of the signal
     """
-    all_acfs = np.zeros(32)
-    for channel in range(32): 
+    all_acfs = np.zeros(signal.shape[1])
+    for channel in range(signal.shape[1]): 
         peaks, _ = find_peaks(signal[:, channel], height = 300, distance = length / (stim_freq * duration) - stim_freq * duration)
-        signal_bins = bin_data(signal[:, channel], peaks).ravel()
+
+        # some channels are broken 
+        try: 
+            signal_bins = bin_data(signal[:, channel], peaks).ravel()
+        except: 
+            all_acfs[channel] = np.nan
+            continue
+
         acf_signal_tmp = acf(signal_bins, nlags=20*30*3)
         acf_signal = np.mean([acf_signal_tmp[20*30], acf_signal_tmp[20*30 * 2], acf_signal_tmp[20*30 * 3]])
         all_acfs[channel] = acf_signal
 
-    return np.mean(all_acfs)
+    return np.nanmean(all_acfs)
 
 def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, duration : int = 10, threshold : float = 0.65) -> np.ndarray:
     """ Use ICA to filtef data"""
@@ -126,17 +133,21 @@ def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, durat
 
     # find acf in original signal 
     data_filtered = data 
-    channel = 0 
+    idx = []
     peaks = []
-    while len(peaks) < stim_freq * duration - 1: 
+    for channel in range(32):
         peaks, _ = find_peaks(data_filtered[:, channel], height = 300, distance = length / (stim_freq * duration) - stim_freq * duration)
-        channel += 1
+        if len(peaks) < 99:
+            idx.append(channel)
+    
+    # remove broken channels
+    data_filtered = np.delete(data_filtered, idx, axis = 1)
     acf_signal = get_acf_signal(data_filtered, stim_freq = stim_freq, length = length, duration = duration)
 
     print(f"Original ACF : {acf_signal}")
     
     # define parameters 
-    n_comp = 32 
+    n_comp = data_filtered.shape[1]
     ratio = 1 
     count = 0 
 
