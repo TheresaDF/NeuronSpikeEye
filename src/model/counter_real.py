@@ -24,7 +24,7 @@ def counter(args : tuple[str]) -> None:
     path = args
     
     # construct save name 
-    save_name = f"../../../../../../../../work3/s194329/results/ramp{path.split(".")[-2][-1]}.pkl"
+    save_name = f"../../../../../../../../work3/s194329/results/ramp{path.split(".")[-2][-1]}/ramp{path.split(".")[-2][-1]}.pkl"
 
     if os.path.exists(save_name): 
         print(f"Skipping save_name : {save_name}")
