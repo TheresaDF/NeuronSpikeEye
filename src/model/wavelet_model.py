@@ -113,7 +113,7 @@ def parse(spike_indicators : np.ndarray, fs : int, width : tuple):
                     te = np.delete(te, i+1)
                 else: 
                     i += 1 
-        TE=te 
+        TE = te 
 
     return TE
 
