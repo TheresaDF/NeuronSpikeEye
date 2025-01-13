@@ -119,16 +119,16 @@ def parse(spike_indicators : np.ndarray, fs : int, width : tuple):
 
     
 
-def count_caps_wavelet(simulator : SimulateData, filtered_signal : np.ndarray) -> np.ndarray:
+def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, num_channels : int = 32, duration : int = 10, stim_freq : int = 10) -> np.ndarray:
     """ Function that estimates the number of CAPs in the signal """
 
     # allocate memory for the counts
-    all_est_counts = np.zeros((simulator.num_channels, int(simulator.duration * simulator.stim_freq)))
+    all_est_counts = np.zeros((num_channels, int(duration * stim_freq)))
 
     # loop over all channels
-    for channel in range(simulator.num_channels):
+    for channel in range(num_channels):
         # find the SA and bin accordingly
-        peaks, _ = find_peaks(simulator.signal[:, channel], height = 300, distance = 300000 / (simulator.stim_freq * simulator.duration) - simulator.stim_freq * simulator.duration)
+        peaks, _ = find_peaks(orig_signal[:, channel], height = 300, distance = 300000 / (stim_freq * duration) - stim_freq * duration)
         bins = bin_data(filtered_signal[:, channel], peaks).T 
 
         # loop over all bins
