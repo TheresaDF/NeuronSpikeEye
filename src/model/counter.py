@@ -73,7 +73,7 @@ def counter(args : tuple[str, int, int]) -> None:
 
     # filter signal 
     print("filter signal")
-    filtered_signal = filter(simulator.signal)
+    filtered_signal, _ = filter(simulator.signal)
 
     # count CAPS using different methods 
     print("baseline and wavelet")
