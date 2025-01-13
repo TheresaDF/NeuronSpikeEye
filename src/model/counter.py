@@ -77,15 +77,15 @@ def counter(args : tuple[str, int, int]) -> None:
 
     # count CAPS using different methods 
     print("baseline and wavelet")
-    estimated_caps_baseline = count_caps_baseline(simulator, filtered_signal)
-    estimated_caps_wavelet = count_caps_wavelet(simulator, filtered_signal)
+    estimated_caps_baseline = count_caps_baseline(simulator.signal, filtered_signal)
+    estimated_caps_wavelet = count_caps_wavelet(simulator.signal, filtered_signal)
 
     # make new instance of simulator for SVM to train 
     print("svm")
     simulator_train = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist="uniform", seed = seed-1)
     simulator_train.construct_signal()
     filtered_signal_train = filter(simulator_train.signal)
-    estimated_caps_svm = count_caps_svm(simulator_train, simulator, filtered_signal_train, filtered_signal)
+    estimated_caps_svm = count_caps_svm(simulator_train, filtered_signal_train, filtered_signal)
 
     # count true CAPS
     true_caps = count_true_caps(simulator)
