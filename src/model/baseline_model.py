@@ -4,7 +4,7 @@ from scipy.signal import find_peaks
 from tqdm import tqdm
 import numpy as np
 
-def bin_data(channel : np.ndarray, peaks : list) -> np.ndarray:
+def bin_data(channel, peaks):
     """
     Bin data into 80ms bins
     """
@@ -28,7 +28,7 @@ def count_caps_baseline(orig_signal : np.ndarray, filtered_signal : np.ndarray, 
     # loop over all channels
     for channel in tqdm(range(num_channels)):
         # find the SA and bin accordingly
-        peaks, _ = find_peaks(orig_signal[:, channel], height = 30, distance = 300000 / (stim_freq * duration))
+        peaks, _ = find_peaks(orig_signal[:, channel], height = 300, distance = 300000 / (stim_freq * duration) - stim_freq * duration)
         bins = bin_data(filtered_signal[:, channel], peaks).T 
 
         # loop over all bins
