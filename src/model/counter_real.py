@@ -15,8 +15,8 @@ def create_folders() -> None:
     os.makedirs(prefix + "results", exist_ok=True)
 
     # make folders for the two ramps we test 
-    os.makedir(prefix + "results/ramp9", exist_ok=True)
-    os.makedir(prefix + "results/ramp7", exist_ok=True)
+    os.makedirs(prefix + "results/ramp9", exist_ok=True)
+    os.makedirs(prefix + "results/ramp7", exist_ok=True)
 
 def counter(args : tuple[str]) -> None: 
 
