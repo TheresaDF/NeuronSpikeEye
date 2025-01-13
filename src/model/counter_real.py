@@ -35,12 +35,12 @@ def counter(args : tuple[str]) -> None:
 
     # filter signal 
     print("filter signal")
-    filtered_signal = filter(data)
+    filtered_signal, idx = filter(data)
 
     # count CAPS using different methods 
     print("baseline and wavelet")
-    estimated_caps_baseline = count_caps_baseline(data, filtered_signal)
-    estimated_caps_wavelet = count_caps_wavelet(data, filtered_signal)
+    estimated_caps_baseline = count_caps_baseline(np.delete(data, idx, axis = 1), filtered_signal)
+    estimated_caps_wavelet = count_caps_wavelet(np.delete(data, idx, axis = 1), filtered_signal)
 
     # make new instance of simulator for SVM to train 
     print("svm")

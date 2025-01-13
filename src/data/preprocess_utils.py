@@ -123,7 +123,7 @@ def get_acf_signal(signal : np.ndarray, stim_freq : int = 10, length : int = 300
 
     return np.nanmean(all_acfs)
 
-def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, duration : int = 10, threshold : float = 0.65) -> np.ndarray:
+def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, duration : int = 10, threshold : float = 0.65) -> tuple[np.ndarray, list]:
     """ Use ICA to filtef data"""
 
     # smooth and filter the data
@@ -174,4 +174,4 @@ def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, durat
         print(f"ratio : {ratio}")
 
     # smooth end result again 
-    return data_filtered
+    return data_filtered, idx 
