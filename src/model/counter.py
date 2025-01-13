@@ -96,9 +96,9 @@ def counter(args : tuple[str, int, int]) -> None:
     d['estimated_wavelet'] = estimated_caps_wavelet 
     d['estimated_svm'] = estimated_caps_svm  
     d['true'] = true_caps
-    d['obs_signal'] = simulator.signal 
-    d['true_signal'] = simulator.true_signal
-    d['filtered_signal'] = filtered_signal
+    # d['obs_signal'] = simulator.signal 
+    # d['true_signal'] = simulator.true_signal
+    # d['filtered_signal'] = filtered_signal
 
     # save files 
     print(f"saving {save_name}")
@@ -126,7 +126,7 @@ if __name__ == "__main__":
                             [200, 5, 10, 20], 
                             [200, 1, 30, 20],
                             [200, 1, 10, 40]])
-    n_repeats = 5 
+    n_repeats = 50 
     
     # create folders to save results to 
     create_folders(noise_params)
