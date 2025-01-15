@@ -2,7 +2,16 @@ from src.data.dataset_utils import read_data, read_ramp
 from src.data.preprocess_utils import filter 
 import numpy as np
 import os
+import neo 
 from multiprocessing import Pool
+
+def read_ns5_file(filename : str) -> tuple[np.ndarray, np.ndarray]:
+    """ Function to read files of .ns5 format and return the data and time values."""
+    reader = neo.io.BlackrockIO(filename = filename, verbose = True)
+    times = reader.read_block(0).segments[0].analogsignals[0].times 
+    data = reader.read_block(0).segments[0].analogsignals[0].magnitude
+
+    return times, data
 
 def create_directories() -> None:
     os.makedirs("data/preprocessed", exist_ok=True)
