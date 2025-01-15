@@ -16,6 +16,7 @@ class SimulateData:
                        stim_freq : int = 10, 
                        stim_amp : int = 6000, 
                        CAP_dist : str = "uniform", 
+                       num_channels : int = 32,
                        seed = None) -> None:
         """
         Simulate data for the project
@@ -40,9 +41,9 @@ class SimulateData:
         self.stim_amp = stim_amp
         self.SA_indices = None
         self.num_stims = None 
-        
+
+        self.num_channels = num_channels
         self.length = 300000
-        self.num_channels = 32 
         self.fs = 3*1e4
         self.duration = self.length // self.fs 
         self.num_stims = int(self.duration * self.stim_freq)
