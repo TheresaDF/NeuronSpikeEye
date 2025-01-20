@@ -142,7 +142,7 @@ def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, d
             spike_indicators = get_accepted_coefficients(coefficients, scales=np.arange(1, 128))
 
             # merge and parse the spikes
-            TE = parse(spike_indicators, fs=30, width=(1, 1))
+            TE = parse(spike_indicators, fs=30, width=(3, 9)) # from how the simulated data is constructed 
             
             # save the number of estimates caps 
             all_est_counts[channel, bin_idx] = len(TE)
