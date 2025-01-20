@@ -24,6 +24,16 @@ def freq_to_time(yf):
     ifft_data = ifft(yf)
     return ifft_data
 
+def get_acf_coefficients(coefficients : np.ndarray) -> float:
+    """
+    Function to compute the acf of the signal
+    """
+    all_acfs = np.zeros(coefficients.shape[0])
+    for scale in range(coefficients.shape[0]): 
+        acf_signal_tmp = acf(coefficients[scale], nlags=10*30)
+        all_acfs[scale] = acf_signal_tmp[10*30]
+
+    return all_acfs
 
 def perform_ICA(data, n_components = 32):
     """
@@ -58,7 +68,7 @@ def bin_data(channel, peaks):
     """
     Bin data into 80ms bins
     """
-    binned_data = np.zeros((len(peaks), 2400))
+    binned_data = np.zeros((100, 2400))
     for c, peak in enumerate(peaks):
         if c == 100: break 
         if (c == 99) & (peak+2700 > len(channel)):
@@ -67,6 +77,7 @@ def bin_data(channel, peaks):
             binned_data[c] = channel[peak+300:peak+2700]
     
     return binned_data
+
 
 def find_bad_channels(data : np.ndarray, peaks : np.ndarray, n_comp : int) -> tuple[int, float]:
     """ Function to find bad channels using ICA"""
