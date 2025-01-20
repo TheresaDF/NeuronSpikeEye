@@ -246,11 +246,10 @@ class SimulateData:
     def add_CAP(self):
         """ Add CAP signals to the signal"""
         
+        # initalize true signal and where the CAPs will occur 
         self.true_signal = np.zeros((self.length, self.num_channels))
         self.CAP_indices = np.zeros((self.num_stims, self.num_channels), dtype = object)
         
-        # get the average length of the segments between the stimuli
-        segment_length = np.mean(self.SA_indices[1:] - self.SA_indices[:-1])
 
         for channel in range(self.num_channels):
             for stim in range(self.num_stims):
