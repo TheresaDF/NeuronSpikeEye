@@ -41,7 +41,7 @@ def counter(args : tuple[str]) -> None:
     # make new instance of simulator for SVM to train 
     print("svm")
     seed = hash(save_name) % (2**32)
-    simulator_train = SimulateData(1, [200, 0, 10, 20], CAP_dist="uniform", seed = seed)
+    simulator_train = SimulateData(1, [200, 5, 10, 20], CAP_dist="uniform", seed = seed)
     simulator_train.construct_signal()
     filtered_signal_train, _ = filter(simulator_train.signal)
     estimated_caps_svm = count_caps_svm(simulator_train, filtered_signal_train, filtered_signal)
