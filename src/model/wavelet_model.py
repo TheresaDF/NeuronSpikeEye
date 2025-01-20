@@ -63,7 +63,7 @@ def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray) ->
     # clean up spike indicators 
     spikes_eroded = binary_erosion(spike_indicators.astype(int), np.ones(5))
 
-    return spikes_eroded.astype(int)
+    return spikes_eroded.astype(int), accepted_coefficients
 
 def parse(spike_indicators : np.ndarray, fs : int, width : tuple): 
     # define refractory period 
@@ -139,7 +139,7 @@ def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, d
             coefficients, _ = pywt.cwt(bins[:, bin_idx], scales=np.arange(1, 128), wavelet='cgau2', sampling_period=1/30000)
             
             # get accepted coefficients
-            spike_indicators = get_accepted_coefficients(coefficients, scales=np.arange(1, 128))
+            spike_indicators, _ = get_accepted_coefficients(coefficients, scales=np.arange(1, 128))
 
             # merge and parse the spikes
             TE = parse(spike_indicators, fs=30, width=(3, 9)) # from how the simulated data is constructed 
