@@ -126,8 +126,8 @@ if __name__ == "__main__":
                             [200, 50, 10, 20], 
                             [200, 1, 30, 20],
                             [200, 1, 10, 40]])
-    n_repeats = 50 
-    
+    n_repeats = 30 
+     
     # create folders to save results to 
     create_folders(noise_params)
 
