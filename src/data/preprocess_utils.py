@@ -1,3 +1,4 @@
+import neo 
 import numpy as np 
 from scipy.signal import wiener, find_peaks 
 from matplotlib import pyplot as plt 
@@ -5,6 +6,16 @@ from scipy.fft import fft, fftfreq, ifft
 from sklearn.decomposition import FastICA  
 from scipy.signal import butter, filtfilt
 from statsmodels.tsa.stattools import acf
+
+
+def read_ns5_file(filename : str) -> tuple[np.ndarray, np.ndarray]:
+    """ Function to read files of .ns5 format and return the data and time values."""
+    reader = neo.io.BlackrockIO(filename = filename, verbose = True)
+    times = reader.read_block(0).segments[0].analogsignals[0].times 
+    data = reader.read_block(0).segments[0].analogsignals[0].magnitude
+
+    return times, data
+
 
 def time_to_freq(data, sample_rate = 3*1e4):
     """
