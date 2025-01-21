@@ -47,7 +47,8 @@ class SimulateData:
         self.fs = 3*1e4
         self.duration = self.length // self.fs 
         self.num_stims = int(self.duration * self.stim_freq)
-        self.channel_varier = np.abs(np.random.normal(loc = 1.5, scale = 5, size = self.num_channels)) 
+        self.channel_varier_count = np.random.uniform(0.5, 7, self.num_channels)
+        self.channel_varier_occurrence = np.random.uniform(0.1, 0.9, self.num_channels)
 
         self.signal = None 
         self.true_signal = None
@@ -254,12 +255,12 @@ class SimulateData:
         for channel in range(self.num_channels):
             for stim in range(self.num_stims):
                 # compute change of there occuring a CAP signal
-                if np.random.rand() > 0.3 * self.channel_varier[channel] - 1: 
+                if np.random.rand() > self.channel_varier_occurrence[channel]: 
                     continue 
                
                 # compute the number of CAP signals to add from CAP freq and segment length
                 # num_CAPs = max(int(segment_length / 3000 * self.CAP_freq) + np.random.choice([-1, 0, 1], 1)[0], 1)
-                num_CAPs = max(int(np.random.choice(np.arange(1, 8), 1)[0] * self.channel_varier[channel]), 1)
+                num_CAPs = max(int(np.random.choice(np.arange(1, 8), 1)[0] * self.channel_varier_count[channel]), 1)
 
                 if self.CAP_dist == "lognormal":
                     # indices = self.sample_lognormal_indices(stim, num_CAPs)
