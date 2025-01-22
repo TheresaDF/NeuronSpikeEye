@@ -1,22 +1,8 @@
-from src.data.create_simulated_data import SimulateData
-from src.data.preprocess_utils import filter
+from src.data.preprocess_utils import bin_data 
 from scipy.signal import find_peaks
 from tqdm import tqdm
 import numpy as np
 
-def bin_data(channel, peaks):
-    """
-    Bin data into 80ms bins
-    """
-    binned_data = np.zeros((100, 2400))
-    for c, peak in enumerate(peaks):
-        if c == 100: break 
-        if (c == 99) & (peak+2700 > len(channel)):
-            binned_data[c, :len(channel) - peak] = channel[peak:]
-        else: 
-            binned_data[c] = channel[peak+300:peak+2700]
-    
-    return binned_data
 
 
 def count_caps_baseline(orig_signal : np.ndarray, filtered_signal : np.ndarray, duration : int = 10, stim_freq : int = 10) -> tuple[np.ndarray]:

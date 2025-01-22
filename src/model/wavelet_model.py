@@ -2,22 +2,7 @@ import pywt
 import numpy as np 
 from skimage.morphology import binary_erosion
 from scipy.signal import find_peaks
-from src.data.create_simulated_data import SimulateData
-
-
-def bin_data(channel : np.ndarray, peaks : list) -> np.ndarray:
-    """
-    Bin data into 80ms bins
-    """
-    binned_data = np.zeros((100, 2400))
-    for c, peak in enumerate(peaks):
-        if c == 100: break 
-        if (c == 99) & (peak+2700 > len(channel)):
-            binned_data[c, :len(channel) - peak] = channel[peak:]
-        else: 
-            binned_data[c] = channel[peak+300:peak+2700]
-    
-    return binned_data
+from src.data.preprocess_utils import bin_data
 
 
 def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray) -> np.ndarray:
