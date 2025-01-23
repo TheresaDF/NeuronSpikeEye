@@ -1,8 +1,59 @@
-import pywt 
-import numpy as np 
+from src.data.preprocess_utils import bin_data
 from skimage.morphology import binary_erosion
 from scipy.signal import find_peaks
-from src.data.preprocess_utils import bin_data
+from tqdm import tqdm
+import numpy as np 
+import pywt 
+
+
+def cgau1_wavelet(scale, times):
+    """
+    Complex Gaussian wavelet (cgau1) function.
+    
+    Parameters:
+    - scale: float. Scale parameter.
+    - times: 1D array-like. Time points at which to evaluate the wavelet.
+    
+    Returns:
+    - wavelet: 1D array. Complex Gaussian wavelet function.
+    """
+    omega_0 = pywt.scale2frequency('cgau1', scale) 
+
+    normalizer = -times / (scale**2) * 1 / (np.sqrt(2*np.pi) * scale) 
+    exp_term = np.exp(-times**2 / (2*scale**2))
+    
+    real_part = normalizer * exp_term * np.cos(times*omega_0)
+    imag_part = normalizer * exp_term * np.sin(times*omega_0)
+
+    return real_part + 1j * imag_part
+
+
+def icwt(coeffs, scales):
+    """
+    Inverse Continuous Wavelet Transform (ICWT)
+
+    Parameters:
+    - coeffs: 2D array-like. Complex wavelet coefficients (output from pywt.cwt).
+    - scales: 1D array-like. Scales used in the CWT.
+    - wavelet: str or pywt.ContinuousWavelet. The wavelet used in the CWT.
+    - dt: float, optional. Sampling interval of the signal.
+
+    Returns:
+    - signal: 1D array. Reconstructed real-valued signal.
+    """
+
+    reconstructed_signal = np.zeros(coeffs.shape[1], dtype=np.float64)  
+    times = np.arange(-coeffs.shape[1] // 2, coeffs.shape[1] // 2)
+    
+    for i, scale in tqdm(enumerate(scales)):
+        # evaluate the wavelet 
+        scaled_wavelet = cgau1_wavelet(scale, times)
+
+        # convolve with coefs 
+        reconstructed_signal += 2 * np.real(np.convolve(coeffs[i], scaled_wavelet, mode='same')) * 1/ np.sqrt(scale)
+        
+    return reconstructed_signal 
+
 
 
 def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray) -> np.ndarray:
