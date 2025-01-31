@@ -120,14 +120,14 @@ def count_all(all_snrs : np.ndarray, noise : np.ndarray, n_repeats : int):
     # pool.map(counter, inputs)
 
 if __name__ == "__main__":
-    all_snrs = np.array(([0.1, 0.5, 1, 1.5, 2]))
+    all_snrs = np.arange(15)
     noise_params = np.array([[200, 1, 10, 20], 
                             [300, 1, 10, 20], 
-                            [200, 5, 10, 20], 
+                            [200, 50, 10, 20], 
                             [200, 1, 30, 20],
                             [200, 1, 10, 40]])
-    n_repeats = 50 
-    
+    n_repeats = 30 
+     
     # create folders to save results to 
     create_folders(noise_params)
 

@@ -1,4 +1,4 @@
-from src.data.dataset_utils import read_ns5_file
+from src.data.preprocess_utils import read_ns5_file
 import statsmodels.tsa.stattools as ts 
 from scipy.signal import welch
 import numpy as np 
@@ -143,8 +143,8 @@ def print_statistics(electrode : str = "2D", data_type : str = "spon", ramp : in
 
 if __name__ == "__main__":
     # # # # # Choose parameters # # # # #
-    electrode = "2D" # "2D" or "3D"
-    data_type = "stim" # "stim", "ttx" or "spon",  "ramp", "simulated"
+    electrode = "3D" # "2D" or "3D"
+    data_type = "spon" # "stim", "ttx" or "spon",  "ramp", "simulated"
     ramp = None # 0 to 13 (only used if data_type = "ramp")
 
     print_statistics(electrode = electrode, data_type=data_type, ramp = ramp)

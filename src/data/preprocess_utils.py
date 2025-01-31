@@ -1,3 +1,4 @@
+import neo 
 import numpy as np 
 from scipy.signal import wiener, find_peaks 
 from matplotlib import pyplot as plt 
@@ -5,6 +6,16 @@ from scipy.fft import fft, fftfreq, ifft
 from sklearn.decomposition import FastICA  
 from scipy.signal import butter, filtfilt
 from statsmodels.tsa.stattools import acf
+
+
+def read_ns5_file(filename : str) -> tuple[np.ndarray, np.ndarray]:
+    """ Function to read files of .ns5 format and return the data and time values."""
+    reader = neo.io.BlackrockIO(filename = filename, verbose = True)
+    times = reader.read_block(0).segments[0].analogsignals[0].times 
+    data = reader.read_block(0).segments[0].analogsignals[0].magnitude
+
+    return times, data
+
 
 def time_to_freq(data, sample_rate = 3*1e4):
     """
@@ -24,6 +35,16 @@ def freq_to_time(yf):
     ifft_data = ifft(yf)
     return ifft_data
 
+def get_acf_coefficients(coefficients : np.ndarray) -> float:
+    """
+    Function to compute the acf of the signal
+    """
+    all_acfs = np.zeros(coefficients.shape[0])
+    for scale in range(coefficients.shape[0]): 
+        acf_signal_tmp = acf(coefficients[scale], nlags=10*30)
+        all_acfs[scale] = acf_signal_tmp[10*30]
+
+    return all_acfs
 
 def perform_ICA(data, n_components = 32):
     """
@@ -58,7 +79,7 @@ def bin_data(channel, peaks):
     """
     Bin data into 80ms bins
     """
-    binned_data = np.zeros((len(peaks), 2400))
+    binned_data = np.zeros((100, 2400))
     for c, peak in enumerate(peaks):
         if c == 100: break 
         if (c == 99) & (peak+2700 > len(channel)):
@@ -67,6 +88,7 @@ def bin_data(channel, peaks):
             binned_data[c] = channel[peak+300:peak+2700]
     
     return binned_data
+
 
 def find_bad_channels(data : np.ndarray, peaks : np.ndarray, n_comp : int) -> tuple[int, float]:
     """ Function to find bad channels using ICA"""

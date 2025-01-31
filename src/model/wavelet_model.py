@@ -1,23 +1,59 @@
-import pywt 
-import numpy as np 
+from src.data.preprocess_utils import bin_data
 from skimage.morphology import binary_erosion
 from scipy.signal import find_peaks
-from src.data.create_simulated_data import SimulateData
+from tqdm import tqdm
+import numpy as np 
+import pywt 
 
 
-def bin_data(channel : np.ndarray, peaks : list) -> np.ndarray:
+def cgau1_wavelet(scale, times):
     """
-    Bin data into 80ms bins
-    """
-    binned_data = np.zeros((100, 2400))
-    for c, peak in enumerate(peaks):
-        if c == 100: break 
-        if (c == 99) & (peak+2700 > len(channel)):
-            binned_data[c, :len(channel) - peak] = channel[peak:]
-        else: 
-            binned_data[c] = channel[peak+300:peak+2700]
+    Complex Gaussian wavelet (cgau1) function.
     
-    return binned_data
+    Parameters:
+    - scale: float. Scale parameter.
+    - times: 1D array-like. Time points at which to evaluate the wavelet.
+    
+    Returns:
+    - wavelet: 1D array. Complex Gaussian wavelet function.
+    """
+    omega_0 = pywt.scale2frequency('cgau1', scale) 
+
+    normalizer = -times / (scale**2) * 1 / (np.sqrt(2*np.pi) * scale) 
+    exp_term = np.exp(-times**2 / (2*scale**2))
+    
+    real_part = normalizer * exp_term * np.cos(times*omega_0)
+    imag_part = normalizer * exp_term * np.sin(times*omega_0)
+
+    return real_part + 1j * imag_part
+
+
+def icwt(coeffs, scales):
+    """
+    Inverse Continuous Wavelet Transform (ICWT)
+
+    Parameters:
+    - coeffs: 2D array-like. Complex wavelet coefficients (output from pywt.cwt).
+    - scales: 1D array-like. Scales used in the CWT.
+    - wavelet: str or pywt.ContinuousWavelet. The wavelet used in the CWT.
+    - dt: float, optional. Sampling interval of the signal.
+
+    Returns:
+    - signal: 1D array. Reconstructed real-valued signal.
+    """
+
+    reconstructed_signal = np.zeros(coeffs.shape[1], dtype=np.float64)  
+    times = np.arange(-coeffs.shape[1] // 2, coeffs.shape[1] // 2)
+    
+    for i, scale in tqdm(enumerate(scales)):
+        # evaluate the wavelet 
+        scaled_wavelet = cgau1_wavelet(scale, times)
+
+        # convolve with coefs 
+        reconstructed_signal += 2 * np.real(np.convolve(coeffs[i], scaled_wavelet, mode='same')) * 1/ np.sqrt(scale)
+        
+    return reconstructed_signal 
+
 
 
 def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray) -> np.ndarray:
@@ -47,7 +83,7 @@ def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray) ->
             p_noise = 1 - p_spikes
 
             # compute gamma
-            log_gamma = 36.7368 * (0) + np.log(p_noise / p_spikes)
+            log_gamma = 36 * 0.5 + np.log(p_noise / p_spikes)
 
             # compute acceptance threshold
             theta = mu / 2 + sigma_j**2 / mu * log_gamma
@@ -63,7 +99,7 @@ def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray) ->
     # clean up spike indicators 
     spikes_eroded = binary_erosion(spike_indicators.astype(int), np.ones(5))
 
-    return spikes_eroded.astype(int)
+    return spikes_eroded.astype(int), accepted_coefficients
 
 def parse(spike_indicators : np.ndarray, fs : int, width : tuple): 
     # define refractory period 
@@ -139,10 +175,10 @@ def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, d
             coefficients, _ = pywt.cwt(bins[:, bin_idx], scales=np.arange(1, 128), wavelet='cgau2', sampling_period=1/30000)
             
             # get accepted coefficients
-            spike_indicators = get_accepted_coefficients(coefficients, scales=np.arange(1, 128))
+            spike_indicators, _ = get_accepted_coefficients(coefficients, scales=np.arange(1, 128))
 
             # merge and parse the spikes
-            TE = parse(spike_indicators, fs=30, width=(1, 1))
+            TE = parse(spike_indicators, fs=30, width=(3, 9)) # from how the simulated data is constructed 
             
             # save the number of estimates caps 
             all_est_counts[channel, bin_idx] = len(TE)

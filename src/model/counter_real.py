@@ -1,9 +1,8 @@
 from src.model.baseline_model import count_caps_baseline
 from src.model.wavelet_model import count_caps_wavelet
 from src.model.svm_model import count_caps_svm
-from src.data.dataset_utils import read_ns5_file
 from src.data.create_simulated_data import SimulateData
-from src.data.preprocess_utils import filter 
+from src.data.preprocess_utils import filter, read_ns5_file
 from multiprocessing import Pool
 import numpy as np 
 import pickle 
@@ -41,7 +40,7 @@ def counter(args : tuple[str]) -> None:
     # make new instance of simulator for SVM to train 
     print("svm")
     seed = hash(save_name) % (2**32)
-    simulator_train = SimulateData(1, [200, 0, 10, 20], CAP_dist="uniform", seed = seed)
+    simulator_train = SimulateData(1, [200, 5, 10, 20], CAP_dist="uniform", seed = seed)
     simulator_train.construct_signal()
     filtered_signal_train, _ = filter(simulator_train.signal)
     estimated_caps_svm = count_caps_svm(simulator_train, filtered_signal_train, filtered_signal)
