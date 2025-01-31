@@ -94,14 +94,14 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
 
     return fig
 
-def generate_plots(path, n_repeats : int = 5):
+def generate_plots(path, n_repeats : int = 5, snrs : list = [0.1, 0.5, 1, 1.5, 2]):
     os.makedirs("results", exist_ok = True)
     noise_dist = os.listdir(path)
     for noise in noise_dist:
-        fig = plot_results(path + noise, n_repeats = n_repeats)
+        fig = plot_results(path + noise, n_repeats = n_repeats, snrs = snrs)
         name = "noise_" + noise
         savefig(fig, name)
 
 if __name__ == "__main__": 
     path = f"../../../../../../work3/s194329/results/"
-    generate_plots(path, n_repeats = 50)
+    generate_plots(path, n_repeats = 30, snrs = np.arange(15))
