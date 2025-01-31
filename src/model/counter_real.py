@@ -77,6 +77,6 @@ if __name__ == "__main__":
     os.chdir("src/data")
 
     # run the counting 
-    paths = [f"../../data/raw/Ramp data/Eye 5/ramp_file{i}.ns5" for i in range(2, 12)]
+    paths = [f"../../data/raw/Ramp data/Eye 4/ramp_file{i}.ns5" for i in range(9, 10)]
     count_all(paths)
 
