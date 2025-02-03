@@ -97,6 +97,7 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
 def generate_plots(path, n_repeats : int = 5, snrs : list = [0.1, 0.5, 1, 1.5, 2]):
     os.makedirs("results", exist_ok = True)
     noise_dist = os.listdir(path)
+    noise_dist = [dist for dist in noise_dist if "noise" in dist]
     for noise in noise_dist:
         fig = plot_results(path + noise, n_repeats = n_repeats, snrs = snrs)
         name = "noise_" + noise
