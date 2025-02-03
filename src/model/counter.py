@@ -77,8 +77,8 @@ def counter(args : tuple[str, int, int]) -> None:
 
     # count CAPS using different methods 
     print("baseline and wavelet")
-    estimated_caps_baseline = count_caps_baseline(simulator.signal, filtered_signal, num_channels = filtered_signal.shape[1])
-    estimated_caps_wavelet = count_caps_wavelet(simulator.signal, filtered_signal, num_channels = filtered_signal.shape[1])
+    estimated_caps_baseline = count_caps_baseline(simulator.signal, filtered_signal)
+    estimated_caps_wavelet = count_caps_wavelet(simulator.signal, filtered_signal)
 
     # make new instance of simulator for SVM to train 
     print("svm")
@@ -120,12 +120,12 @@ def count_all(all_snrs : np.ndarray, noise : np.ndarray, n_repeats : int):
     # pool.map(counter, inputs)
 
 if __name__ == "__main__":
-    all_snrs = np.arange(15)
-    noise_params = np.array([[200, 1, 10, 20], 
-                            [300, 1, 10, 20], 
-                            [200, 50, 10, 20], 
-                            [200, 1, 30, 20],
-                            [200, 1, 10, 40]])
+    all_snrs = np.arange(10)
+    noise_params = np.array([[200, 1, 10, 20]]) 
+                            # [300, 1, 10, 20], 
+                            # [200, 50, 10, 20], 
+                            # [200, 1, 30, 20],
+                            # [200, 1, 10, 40]])
     n_repeats = 30 
      
     # create folders to save results to 
