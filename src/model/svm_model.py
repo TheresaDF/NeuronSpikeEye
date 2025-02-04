@@ -52,8 +52,8 @@ def count_caps_svm(simulator_train : SimulateData, filtered_signal_train : np.nd
     X_test = convert_to_scaleogram(X_test)
 
     # normalize data 
-    X_train = X_train / np.max(X_train, axis = 1)
-    X_test = X_test / np.max(X_test, axis = 1)
+    X_train = X_train / np.max(X_train, axis = 1).reshape(-1, 1)
+    X_test = X_test / np.max(X_test, axis = 1).reshape(-1, 1)
     y_max = np.max(y_train)
     y_train = y_train / y_max 
 
