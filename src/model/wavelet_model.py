@@ -52,8 +52,8 @@ def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray, ra
     return spikes_eroded.astype(int), accepted_coefficients
 
 def parse(spike_indicators : np.ndarray, fs : int, width : tuple): 
-    # define refractory period 
-    refract_len = 30   
+    # define refractory period (also defined in Jesper's paper)
+    refract_len = 30 
 
     # merge spikes closer than merge 
     merge = np.mean(width)    
