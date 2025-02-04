@@ -6,8 +6,6 @@ import numpy as np
 import pywt 
 
 
-
-
 CAP_length = lambda x: len(x) if type(x) == list else 0
 
 def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, duration : int = 10, stim_freq : int = 10) -> tuple[np.ndarray, np.ndarray]:
