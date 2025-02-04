@@ -33,7 +33,7 @@ def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray) ->
             p_noise = 1 - p_spikes
 
             # compute gamma
-            log_gamma = 36 * 0.5 + np.log(p_noise / p_spikes)
+            log_gamma = 36 * 0.1 + np.log(p_noise / p_spikes)
 
             # compute acceptance threshold
             theta = mu / 2 + sigma_j**2 / mu * log_gamma
