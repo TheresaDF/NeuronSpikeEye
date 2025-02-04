@@ -86,7 +86,7 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
     ax.set_xlabel(r"$\alpha$ Levels")
     ax.set_ylabel(r"Relative Error [$\%$]")
     ax.set_title("Comparison of Error for Different Methods")
-    ax.set_ylim([-100, 30])
+    ax.set_ylim([-100, 100])
     ax.legend()
 
     plt.tight_layout()
@@ -105,4 +105,4 @@ def generate_plots(path, n_repeats : int = 5, snrs : list = [0.1, 0.5, 1, 1.5, 2
 
 if __name__ == "__main__": 
     path = f"../../../../../../work3/s194329/results/"
-    generate_plots(path, n_repeats = 30, snrs = np.arange(15))
+    generate_plots(path, n_repeats = 30, snrs = np.r_[0.1, np.arange(1, 11)])
