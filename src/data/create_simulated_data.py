@@ -112,7 +112,7 @@ class SimulateData:
             indices = np.random.randint(0, self.length, size=activity_count)
 
             for idx in indices:
-                duration = np.random.uniform(1, 5)
+                duration = np.random.uniform(0, 4) + np.random.random()
                 spon_act = self.get_CAP(duration) * 0.5  # Spontaneous activity scaled down
                 idx1 = max(0, idx)
                 idx2 = min(self.length, idx1 + len(spon_act))
@@ -137,8 +137,8 @@ class SimulateData:
         y2 = beta.pdf(np.linspace(0, 1, 100), 2, 3)
 
         # combine the two parts and smooth the signal
-        Y = np.r_[4*y1, -0.8*y2]
-        Y[len(Y)//2-10:len(Y) // 2 + 10] = gaussian_filter1d(Y[len(Y)//2-10:len(Y) // 2 + 10], 4)
+        Y = np.r_[4 * y1, -0.8 * y2]
+        Y[len(Y) // 2- 10 : len(Y) // 2 + 10] = gaussian_filter1d(Y[len(Y) // 2- 10 : len(Y) // 2 + 10], 4)
         Y = gaussian_filter1d(Y, 4)
 
         return Y 
