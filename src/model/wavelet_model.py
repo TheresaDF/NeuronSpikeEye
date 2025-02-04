@@ -6,7 +6,7 @@ import numpy as np
 import pywt 
 
 
-def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray) -> np.ndarray:
+def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray, ratio : float) -> np.ndarray:
     accepted_coefficients = np.zeros_like(coefficients)
     spike_indicators = np.zeros(coefficients.shape[1], dtype = bool)
 
@@ -33,7 +33,7 @@ def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray) ->
             p_noise = 1 - p_spikes
 
             # compute gamma
-            log_gamma = 36 * 0.1 + np.log(p_noise / p_spikes)
+            log_gamma = 36 * ratio + np.log(p_noise / p_spikes)
 
             # compute acceptance threshold
             theta = mu / 2 + sigma_j**2 / mu * log_gamma
@@ -53,10 +53,10 @@ def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray) ->
 
 def parse(spike_indicators : np.ndarray, fs : int, width : tuple): 
     # define refractory period 
-    refract_len = round(1.5 * width[1] * fs)     
+    refract_len = 30   
 
     # merge spikes closer than merge 
-    merge = round(np.mean(width) * fs)       
+    merge = np.mean(width)    
     
     # discard spikes at beginning and end
     spike_indicators[0] = 0 
