@@ -148,9 +148,9 @@ class SimulateData:
         CAP2 = np.load("noise_files_sim_data/CAP2.npy")
 
         # match to the duration of the CAP signal
-        num_points = int(duration * 30)
+        num_points = np.max(int(duration * 30), 10)
         interp = interp1d(np.arange(0, len(CAP2)), CAP2)
-        x_new = np.linspace(0, len(CAP2)-1, num_points)
+        x_new = np.linspace(0, len(CAP2), num_points)
         Y = interp(x_new)
 
         # vary the amplitude a bit from the specified amplitude
