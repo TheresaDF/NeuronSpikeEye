@@ -114,7 +114,7 @@ def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, d
     all_est_counts = np.zeros((num_channels, int(duration * stim_freq))) if bin else np.zeros((num_channels, 1))
 
     # loop over all channels
-    for channel in range(num_channels):
+    for channel in tqdm(range(num_channels)):
         if bin: 
             # find the SA and bin accordingly
             peaks, _ = find_peaks(orig_signal[:, channel], height = 300, distance = 300000 / (stim_freq * duration) - stim_freq * duration)
