@@ -8,10 +8,11 @@ import pywt
 
 CAP_length = lambda x: len(x) if type(x) == list else 0
 
-def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, duration : int = 10, stim_freq : int = 10) -> tuple[np.ndarray, np.ndarray]:
+def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, duration : int = 10, stim_freq : int = 10, bin = True) -> tuple[np.ndarray, np.ndarray]:
     """
     Make matrices for training and testing
     """
+    # get the number of caps 
     num_channels = filtered_signal.shape[1]
     if simulator is not None:
         y = np.array(([np.sum([CAP_length(simulator.CAP_indices[i][channel]) for i in range(int(stim_freq * duration))]) 
@@ -19,10 +20,17 @@ def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, durati
     else: 
         y = np.zeros(num_channels)
 
+    # gather data without SA
     X = np.zeros((num_channels, int(stim_freq * duration*2400)))
     for channel in range(num_channels):
-        peaks, _ = find_peaks(filtered_signal[:, channel], height = 300, distance = 300000 / (stim_freq * duration) - stim_freq * duration)
-        data = bin_data(filtered_signal[:, channel], peaks)
+        # if stimualted
+        if bin: 
+            peaks, _ = find_peaks(filtered_signal[:, channel], height = 300, distance = 300000 / (stim_freq * duration) - stim_freq * duration)
+            data = bin_data(filtered_signal[:, channel], peaks)
+        
+        # if spontaneous
+        else: 
+            data = filtered_signal[:, channel]
         X[channel] = data.ravel()
 
     return X, y 

@@ -105,33 +105,48 @@ def parse(spike_indicators : np.ndarray, fs : int, width : tuple):
 
     
 
-def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, duration : int = 10, stim_freq : int = 10) -> np.ndarray:
+def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, duration : int = 10, stim_freq : int = 10, bin : bool = True) -> np.ndarray:
     """ Function that estimates the number of CAPs in the signal """
     # get number of channels 
     num_channels = filtered_signal.shape[1]
 
     # allocate memory for the counts
-    all_est_counts = np.zeros((num_channels, int(duration * stim_freq)))
+    all_est_counts = np.zeros((num_channels, int(duration * stim_freq))) if bin else np.zeros((num_channels, 1))
 
     # loop over all channels
     for channel in range(num_channels):
-        # find the SA and bin accordingly
-        peaks, _ = find_peaks(orig_signal[:, channel], height = 300, distance = 300000 / (stim_freq * duration) - stim_freq * duration)
-        bins = bin_data(filtered_signal[:, channel], peaks).T 
+        if bin: 
+            # find the SA and bin accordingly
+            peaks, _ = find_peaks(orig_signal[:, channel], height = 300, distance = 300000 / (stim_freq * duration) - stim_freq * duration)
+            bins = bin_data(filtered_signal[:, channel], peaks).T 
 
-        # loop over all bins
-        for bin_idx in range(bins.shape[1]):
+            # loop over all bins
+            for bin_idx in range(bins.shape[1]):
+                # apply wavelet transform
+                coefficients, _ = pywt.cwt(bins[:, bin_idx], scales=np.arange(1, 128), wavelet='cgau1', sampling_period=1/30000)
+                
+                # get accepted coefficients
+                spike_indicators, _ = get_accepted_coefficients(coefficients, scales=np.arange(1, 128), ratio = 0.1)
+
+                # merge and parse the spikes
+                TE = parse(spike_indicators, fs=30, width=(3, 9)) # from how the simulated data is constructed 
+                
+                # save the number of estimates caps 
+                all_est_counts[channel, bin_idx] = len(TE)
+
+        # if spontaneous data 
+        else: 
             # apply wavelet transform
-            coefficients, _ = pywt.cwt(bins[:, bin_idx], scales=np.arange(1, 128), wavelet='cgau1', sampling_period=1/30000)
+            coefficients, _ = pywt.cwt(filtered_signal[:, channel], scales=np.arange(1, 128), wavelet='cgau1', sampling_period=1/30000)
             
             # get accepted coefficients
             spike_indicators, _ = get_accepted_coefficients(coefficients, scales=np.arange(1, 128), ratio = 0.1)
 
             # merge and parse the spikes
-            TE = parse(spike_indicators, fs=30, width=(3, 9)) # from how the simulated data is constructed 
-            
-            # save the number of estimates caps 
-            all_est_counts[channel, bin_idx] = len(TE)
+            TE = parse(spike_indicators, fs=30, width=(3, 9))
+
+            # save the number of estimates caps
+            all_est_counts[channel] = len(TE)
 
 
     return all_est_counts
