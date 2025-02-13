@@ -48,10 +48,10 @@ def convert_to_scaleogram(signal : np.ndarray) -> np.ndarray:
 
     return X_wavelet
 
-def count_caps_svm(simulator_train : SimulateData, filtered_signal_train : np.ndarray, filtered_signal_test : np.ndarray) -> np.ndarray:
+def count_caps_svm(simulator_train : SimulateData, filtered_signal_train : np.ndarray, filtered_signal_test : np.ndarray, bin : bool = True) -> np.ndarray:
     # construct matrices
-    X_train, y_train = make_matrices(simulator_train, filtered_signal_train)
-    X_test, _ = make_matrices(None, filtered_signal_test)
+    X_train, y_train = make_matrices(simulator_train, filtered_signal_train, bin)
+    X_test, _ = make_matrices(None, filtered_signal_test, bin)
 
     # convert to scaleogram
     X_train = convert_to_scaleogram(X_train)
