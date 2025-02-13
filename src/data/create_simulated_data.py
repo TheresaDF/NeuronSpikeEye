@@ -25,7 +25,7 @@ class SimulateData:
             noise_params: np.array([float, float, float, float]) - noise parameters for power line intereference, 500 Hz noise, gaussian noise and high frequency noise 
             stim_freq: float - frequency of the stimulus signal¨
             CAP_freq: int - frequency of the CAP signal
-            CAP_dist: str - distribution of the CAP signal (uniform, lognormal, normal)
+            CAP_dist: str - distribution of the CAP signal (uniform, lognormal, normal, None)
         """
         self.seed = seed 
         if self.seed is not None: 
@@ -107,8 +107,15 @@ class SimulateData:
 
     def add_spontaneous_activity(self):
         """Add spontaneous activity to the signal."""
+
+        # init true signal if not already done
+        if self.true_signal is None:
+            self.true_signal = np.zeros((self.length, self.num_channels))
+        if self.CAP_indices is None:
+            self.CAP_indices = np.zeros((self.num_stims, self.num_channels), dtype=object)
+
         for channel in range(self.num_channels):
-            activity_count = int(self.duration * 5)  # Approx. 5 spontaneous activities per second
+            activity_count = np.random.choice(np.arange(int(self.duration * 5)-10, int(self.duration * 5)+10))  # Approx. 5 spontaneous activities per second
             indices = np.random.randint(0, self.length, size=activity_count)
 
             for idx in indices:
@@ -247,11 +254,10 @@ class SimulateData:
     def add_CAP(self):
         """ Add CAP signals to the signal"""
         
-        # initalize true signal and where the CAPs will occur 
+        # initalize the CAPs will occur 
         self.true_signal = np.zeros((self.length, self.num_channels))
         self.CAP_indices = np.zeros((self.num_stims, self.num_channels), dtype = object)
         
-
         for channel in range(self.num_channels):
             for stim in range(self.num_stims):
                 # compute change of there occuring a CAP signal
@@ -304,12 +310,15 @@ class SimulateData:
         rms_noise = np.mean(self.noise_signal**2, axis=0)
 
         # add stimuli
-        self.add_all_stimuli(); 
+        if self.CAP_dist is not None: 
+            self.add_all_stimuli(); 
 
         ### true signal ###
-        self.add_CAP()
-        self.add_spontaneous_activity()
+        if self.CAP_dist is not None:
+            self.add_CAP()
 
+        self.add_spontaneous_activity()
+                
         ### combine signals ###
         self.signal = np.zeros((self.length, self.num_channels))
         for channel in range(self.num_channels):
