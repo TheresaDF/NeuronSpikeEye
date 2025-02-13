@@ -20,19 +20,17 @@ def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, durati
     else: 
         y = np.zeros(num_channels)
 
-    # gather data without SA
-    X = np.zeros((num_channels, int(stim_freq * duration*2400)))
-    for channel in range(num_channels):
-        # if stimualted
-        if bin: 
+    if bin: 
+        # gather data without SA
+        X = np.zeros((num_channels, int(stim_freq * duration*2400))) 
+        for channel in range(num_channels):
             peaks, _ = find_peaks(filtered_signal[:, channel], height = 300, distance = 300000 / (stim_freq * duration) - stim_freq * duration)
             data = bin_data(filtered_signal[:, channel], peaks)
-        
-        # if spontaneous
-        else: 
-            data = filtered_signal[:, channel]
-        X[channel] = data.ravel()
 
+            data = filtered_signal[:, channel]
+            X[channel] = data.ravel()
+    else: 
+        X = filtered_signal
     return X, y 
 
 def convert_to_scaleogram(signal : np.ndarray) -> np.ndarray:
@@ -50,8 +48,8 @@ def convert_to_scaleogram(signal : np.ndarray) -> np.ndarray:
 
 def count_caps_svm(simulator_train : SimulateData, filtered_signal_train : np.ndarray, filtered_signal_test : np.ndarray, bin : bool = True) -> np.ndarray:
     # construct matrices
-    X_train, y_train = make_matrices(simulator_train, filtered_signal_train, bin)
-    X_test, _ = make_matrices(None, filtered_signal_test, bin)
+    X_train, y_train = make_matrices(simulator_train, filtered_signal_train, bin = bin)
+    X_test, _ = make_matrices(None, filtered_signal_test, bin = bin)
 
     # convert to scaleogram
     X_train = convert_to_scaleogram(X_train)
