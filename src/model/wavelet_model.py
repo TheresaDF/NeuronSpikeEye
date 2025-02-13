@@ -6,6 +6,21 @@ import numpy as np
 import pywt 
 
 
+def hist_stretch(x : np.ndarray) -> np.ndarray:
+    """ Function to perform histogram stretching """
+    
+    min_intensity = np.min(x, axis = 1)[:, None]
+    max_intensity = np.max(x, axis = 1)[:, None]
+
+    # Define the desired minimum and maximum intensity values
+    desired_min_intensity = 0.0  
+    desired_max_intensity = 1.0
+
+    # Perform contrast stretching
+    x_stretch = (x - min_intensity) * ((desired_max_intensity - desired_min_intensity) / (max_intensity - min_intensity)) + desired_min_intensity
+    return x_stretch
+
+
 def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray, ratio : float) -> np.ndarray:
     accepted_coefficients = np.zeros_like(coefficients)
     spike_indicators = np.zeros(coefficients.shape[1], dtype = bool)
@@ -124,6 +139,9 @@ def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, d
             for bin_idx in range(bins.shape[1]):
                 # apply wavelet transform
                 coefficients, _ = pywt.cwt(bins[:, bin_idx], scales=np.arange(1, 128), wavelet='cgau1', sampling_period=1/30000)
+
+                # normalize the coefficients
+                coefficients = hist_stretch(coefficients)
                 
                 # get accepted coefficients
                 spike_indicators, _ = get_accepted_coefficients(coefficients, scales=np.arange(1, 128), ratio = 0.1)
@@ -139,6 +157,9 @@ def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, d
             # apply wavelet transform
             coefficients, _ = pywt.cwt(filtered_signal[:, channel], scales=np.arange(1, 128), wavelet='cgau1', sampling_period=1/30000)
             
+            # normalize the coefficients
+            coefficients = hist_stretch(coefficients)
+
             # get accepted coefficients
             spike_indicators, _ = get_accepted_coefficients(coefficients, scales=np.arange(1, 128), ratio = 0.1)
 
