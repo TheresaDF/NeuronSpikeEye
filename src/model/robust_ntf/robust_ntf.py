@@ -30,7 +30,7 @@ tl.set_backend('pytorch')
 
 
 def robust_ntf(data, rank, beta, reg_val, tol, init='random', max_iter=1000,
-               print_every=10, user_prov=None):
+               print_every=10, user_prov=None, verbose=False):
     """Robust Non-negative Tensor Factorization (rNTF)
 
     This function decomposes an input non-negative tensor into the sum of
@@ -142,7 +142,8 @@ def robust_ntf(data, rank, beta, reg_val, tol, init='random', max_iter=1000,
     obj[0] = fit[0] + reg_val*L21_norm(unfolder(outlier, 0))
 
     # Print initial iteration:
-    print('Iter = 0; Obj = {}'.format(obj[0]))
+    if verbose:
+        print('Iter = 0; Obj = {}'.format(obj[0]))
     # pdb.set_trace()
 
     for iter in range(max_iter):
@@ -186,7 +187,7 @@ def robust_ntf(data, rank, beta, reg_val, tol, init='random', max_iter=1000,
                                       beta)
         obj[iter+1] = fit[iter+1] + reg_val*L21_norm(unfolder(outlier, 0))
 
-        if iter % print_every == 0:  # print progress
+        if (iter % print_every == 0) & verbose:  # print progress
             print('Iter = {}; Obj = {}; Err = {}'.format(iter+1, obj[iter+1],
                   torch.abs((obj[iter]-obj[iter+1])/obj[iter])))
 
