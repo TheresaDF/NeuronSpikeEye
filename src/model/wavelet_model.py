@@ -146,12 +146,15 @@ def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, d
             all_est_counts[channel, i] = len(TE)
 
         # if spontaneous data 
-        else: 
+        if not bin: 
             # apply wavelet transform
-            coefficients, _ = pywt.cwt(filtered_signal[:, channel], scales=np.arange(1, 128), wavelet='cgau1', sampling_period=1/30000)
+            coefficients, _= pywt.cwt(filtered_signal[:, channel], scales=np.arange(1, 128), wavelet='cgau1', sampling_period=1/30000)
             
             # get accepted coefficients
-            spike_indicators, _ = get_accepted_coefficients(coefficients, scales=np.arange(1, 128), ratio = 0.1)
+            coefficients = get_accepted_coefficients(coefficients, scales=np.arange(1, 128), ratio = 0.1)
+
+            # get spike indicators 
+            spike_indicators = get_spike_indicators(coefficients)
 
             # merge and parse the spikes
             TE = parse(spike_indicators, fs=30, width=(3, 9))

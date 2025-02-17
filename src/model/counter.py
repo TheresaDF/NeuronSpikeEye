@@ -68,7 +68,7 @@ def counter(args : tuple[str, int]) -> None:
         return
 
     # determine if data should be binned 
-    bin = False if data_type == "spon" else True
+    to_bin = False if data_type == "spon" else True
 
     # make simulated data
     seed = hash(filename) % (2**32)
@@ -85,8 +85,8 @@ def counter(args : tuple[str, int]) -> None:
 
     # count CAPS using different methods 
     print("baseline and wavelet")
-    estimated_caps_baseline = count_caps_baseline(simulator.signal, filtered_signal, bin = bin)
-    estimated_caps_wavelet = count_caps_wavelet(simulator.signal, filtered_signal, bin = bin)
+    estimated_caps_baseline = count_caps_baseline(simulator.signal, filtered_signal, bin = to_bin)
+    estimated_caps_wavelet = count_caps_wavelet(simulator.signal, filtered_signal, bin = to_bin)
 
     # make new instance of simulator for SVM to train 
     print("svm")
@@ -97,7 +97,7 @@ def counter(args : tuple[str, int]) -> None:
         
     simulator_train.construct_signal()
     filtered_signal_train, _ = filter(simulator_train.signal)
-    estimated_caps_svm = count_caps_svm(simulator_train, filtered_signal_train, filtered_signal, bin = bin)
+    estimated_caps_svm = count_caps_svm(simulator_train, filtered_signal_train, filtered_signal, bin = to_bin)
 
     # count true CAPS
     true_caps = count_true_caps(simulator)

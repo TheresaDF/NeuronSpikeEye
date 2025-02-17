@@ -5,10 +5,9 @@ import torch
 
 torch.set_default_tensor_type(torch.cuda.DoubleTensor)
 
-
 def clean_scalograms(scalograms : np.ndarray) -> np.ndarray:
     # convert to torch tensor
-    scalograms_torch = torch.tensor(scalograms).cuda()
+    scalograms_torch = torch.tensor(scalograms)
 
     # define parameters 
     rank = 91 
