@@ -1,37 +1,10 @@
 from src.data.preprocess_utils import bin_data
+from src.model.robust_ntf.clean_scalogram import clean_scalograms 
 from skimage.morphology import binary_erosion
 from scipy.signal import find_peaks
-from src.model.robust_ntf import robust_ntf
-from tensorly.tenalg import outer
 from tqdm import tqdm
 import numpy as np 
-import torch 
 import pywt 
-
-
-def clean_scalograms(scalograms : np.ndarray) -> np.ndarray:
-    # convert to torch tensor
-    scalograms_torch = torch.tensor(scalograms).cuda()
-
-    # define parameters 
-    rank = 91 
-    beta = 1
-    reg_val = 30
-    tol = 1e-3
-
-    # run robust NTF
-    factors, _, _ = robust_ntf(scalograms_torch, rank=rank, beta=beta, reg_val=reg_val, tol=tol)
-
-    # reconstruct 
-    rntf_recon = torch.zeros(scalograms.shape)
-    for i in range(rank):
-        rntf_recon = rntf_recon + outer([factors[0][:,i],
-                                        factors[1][:,i],
-                                        factors[2][:,i]])
-
-    rntf_recon = rntf_recon.numpy()
-
-    return rntf_recon
 
 
 def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray, ratio : float) -> tuple[np.ndarray, np.ndarray]:
