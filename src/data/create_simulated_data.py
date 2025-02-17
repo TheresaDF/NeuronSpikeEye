@@ -119,7 +119,7 @@ class SimulateData:
             indices = np.random.randint(0, self.length, size=activity_count)
 
             for idx in indices:
-                duration = np.random.uniform(0, 4) + np.random.random()
+                duration = np.random.randint(0, 4) + np.random.random()
                 spon_act = self.get_CAP(duration) * 0.5  # Spontaneous activity scaled down
                 idx1 = max(0, idx)
                 idx2 = min(self.length, idx1 + len(spon_act))
@@ -152,13 +152,16 @@ class SimulateData:
     
 
     def CAP2(self, duration : float) -> np.ndarray:
-        CAP2 = np.load("noise_files_sim_data/CAP2.npy")
+        Y = []
+        while len(Y) == 0: 
+            CAP2 = np.load("noise_files_sim_data/CAP2.npy")
 
-        # match to the duration of the CAP signal
-        num_points = max(int(duration * 30), 10)
-        interp = interp1d(np.arange(0, len(CAP2)), CAP2)
-        x_new = np.linspace(0, len(CAP2)-1, num_points)
-        Y = interp(x_new)
+            # match to the duration of the CAP signal
+            num_points = max(int(duration * 30), 10)
+            interp = interp1d(np.arange(0, len(CAP2)), CAP2)
+            x_new = np.linspace(0, len(CAP2)-1, num_points)
+            Y = interp(x_new)
+            duration += 0.1 
 
         # vary the amplitude a bit from the specified amplitude
         Y /= np.max(Y)
@@ -170,13 +173,16 @@ class SimulateData:
     def CAP1(self, duration : float) -> np.ndarray:
         """ Get a CAP signal with a specified duration"""
 
-        base_cap = self.base_CAP()
-        
-        # match to the duration of the CAP signal
-        num_points = int(duration * 30)
-        interp = interp1d(np.arange(0, len(base_cap)), base_cap)
-        x_new = np.linspace(0, len(base_cap)-1, num_points)
-        Y = interp(x_new)
+        Y = []
+        while len(Y) == 0: 
+            base_cap = self.base_CAP()
+            
+            # match to the duration of the CAP signal
+            num_points = max(int(duration * 30), 2)
+            interp = interp1d(np.arange(0, len(base_cap)), base_cap)
+            x_new = np.linspace(0, len(base_cap)-1, num_points)
+            Y = interp(x_new)
+            duration += 0.1 
 
         # vary the amplitude a bit from the specified amplitude
         Y /= np.max(Y)
