@@ -1,9 +1,8 @@
 from src.data.create_simulated_data import SimulateData
 from src.data.preprocess_utils import bin_data
-from scipy.signal import find_peaks
+from scipy.signal import find_peaks, welch 
 from sklearn.svm import SVR 
 import numpy as np
-import pywt 
 
 
 CAP_length = lambda x: len(x) if type(x) == list else 0
@@ -31,18 +30,16 @@ def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, durati
         X = filtered_signal
     return X, y 
 
-def convert_to_scaleogram(signal : np.ndarray) -> np.ndarray:
-    scales = np.arange(1, 128)
-    X_wavelet = np.zeros((signal.shape[0], len(scales)))
-
-    # convert to scaleogram
+def convert_to_frequency(signal : np.ndarray) -> np.ndarray:
+    # convert to frequency comain
     for i in range(signal.shape[0]):
-        coefs = pywt.cwt(signal[i], scales, "cgau1")[0]
+        f, Sxx = welch(signal[i], fs = 30000, nperseg = 256)
+        if i == 0 : 
+            X_freq = np.zeros((signal.shape[0], len(Sxx[f < 5000])))
+        
+        X_freq[i] = Sxx[f < 5000]
+    return X_freq
 
-        # average out time dimension 
-        X_wavelet[i] = np.mean(np.abs(coefs), axis = 1)
-
-    return X_wavelet
 
 def count_caps_svm(simulator_train : SimulateData, filtered_signal_train : np.ndarray, filtered_signal_test : np.ndarray, bin : bool = True) -> np.ndarray:
     # construct matrices
@@ -50,8 +47,8 @@ def count_caps_svm(simulator_train : SimulateData, filtered_signal_train : np.nd
     X_test, _ = make_matrices(None, filtered_signal_test, bin = bin)
 
     # convert to scaleogram
-    X_train = convert_to_scaleogram(X_train)
-    X_test = convert_to_scaleogram(X_test)
+    X_train = convert_to_frequency(X_train)
+    X_test = convert_to_frequency(X_test)
 
     # normalize data 
     X_train = X_train / np.max(X_train, axis = 1).reshape(-1, 1)
