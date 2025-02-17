@@ -112,9 +112,9 @@ def counter(args : tuple[str, int, int]) -> None:
         pickle.dump(d, output_file)
     output_file.close()
     
-def count_all(all_snrs : np.ndarray, noise : np.ndarray, n_repeats : int):
+def count_all(data_type : str, all_snrs : np.ndarray, noise : np.ndarray, n_repeats : int):
     # get filenames 
-    inputs = generate_inputs(all_snrs, noise, n_repeats)
+    inputs = generate_inputs(data_type, all_snrs, noise, n_repeats)
     
 
     # start processing all files 
@@ -140,4 +140,4 @@ if __name__ == "__main__":
     os.chdir("src/data")
 
     # run the counting 
-    count_all(all_snrs, noise_params, n_repeats)
+    count_all(data_type, all_snrs, noise_params, n_repeats)
