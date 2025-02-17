@@ -81,8 +81,7 @@ class SimulateData:
         SA = SA_options[SA_idx] / np.max(SA_options[SA_idx])  # Normalize
 
         for stim in range(self.num_stims):
-            offset = np.random.randint(-20, 20)
-            idx1 = spacing * stim + offset
+            idx1 = spacing * stim 
             idx2 = idx1 + len(SA)
 
             if idx1 < 0 or idx2 > self.length:
