@@ -11,7 +11,7 @@ import pywt
 
 def clean_scalograms(scalograms : np.ndarray) -> np.ndarray:
     # convert to torch tensor
-    scalograms_torch = torch.tensor(scalograms)
+    scalograms_torch = torch.tensor(scalograms).cuda()
 
     # define parameters 
     rank = 91 
