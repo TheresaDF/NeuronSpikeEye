@@ -99,7 +99,7 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
     ax.set_xlabel(r"$\alpha$ Levels")
     ax.set_ylabel(r"RMSE")
     ax.set_title("Comparison of Error for Different Methods")
-    ax.set_ylim([0, 90])
+    ax.set_ylim([0, 150])
     ax.legend()
 
     plt.tight_layout()
@@ -117,5 +117,8 @@ def generate_plots(path, n_repeats : int = 5, snrs : list = [0.1, 0.5, 1, 1.5, 2
         savefig(fig, name)
 
 if __name__ == "__main__": 
-    path = f"../../../../../../work3/s194329/results/"
-    generate_plots(path, n_repeats = 30, snrs = np.r_[0.1, np.arange(1, 11)])
+    data_type = "synthetic"
+    stim = "stim"
+
+    path = f"../../../../../../work3/s194329/results_" + data_type + "_" + stim + "/"
+    generate_plots(path, n_repeats = 30, snrs = np.r_[0.1, np.arange(1, 7)])
