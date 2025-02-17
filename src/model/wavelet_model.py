@@ -1,7 +1,7 @@
 from src.data.preprocess_utils import bin_data
 from skimage.morphology import binary_erosion
 from scipy.signal import find_peaks
-from robust_ntf import robust_ntf
+from src.model.robust_ntf import robust_ntf
 from tensorly.tenalg import outer
 from tqdm import tqdm
 import numpy as np 
@@ -14,9 +14,9 @@ def clean_scalograms(scalograms : np.ndarray) -> np.ndarray:
     scalograms_torch = torch.tensor(scalograms)
 
     # define parameters 
-    rank = 96 
+    rank = 91 
     beta = 1
-    reg_val = 1
+    reg_val = 30
     tol = 1e-3
 
     # run robust NTF
@@ -73,7 +73,7 @@ def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray, ra
 def get_spike_indicators(accepted_coefficients : np.ndarray) -> np.ndarray:
     # get locations of spikes 
     col_sum = np.sum(np.abs(accepted_coefficients), axis = 0)
-    mask = col_sum > np.mean(accepted_coefficients[accepted_coefficients > 0]) * accepted_coefficients.shape[0]
+    mask = col_sum > np.mean(accepted_coefficients[accepted_coefficients > 0]) * accepted_coefficients.shape[0] / 3 
     col_sum[~mask] = 0 
     spike_indicators = col_sum.astype(bool).astype(int)
 
@@ -84,7 +84,7 @@ def parse(spike_indicators : np.ndarray, fs : int, width : tuple):
     refract_len = 30 
 
     # merge spikes closer than merge 
-    merge = np.mean(width)    
+    merge = np.mean(width) * fs   
     
     # discard spikes at beginning and end
     spike_indicators[0] = 0 
