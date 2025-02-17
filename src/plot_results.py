@@ -41,9 +41,9 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
     files = sorted(glob.glob(path + '/*.pkl'), key=len)
 
     num_snrs = len(snrs)
-    errors_baseline = np.zeros((num_snrs, n_repeats))
-    errors_wavelet = np.zeros((num_snrs, n_repeats))
-    errors_svm = np.zeros((num_snrs, n_repeats))
+    errors_baseline = np.zeros((num_snrs, n_repeats)); errors_baseline[:] = np.nan 
+    errors_wavelet = np.zeros((num_snrs, n_repeats));  errors_wavelet[:] = np.nan 
+    errors_svm = np.zeros((num_snrs, n_repeats));      errors_svm[:] = np.nan 
 
     for c, file in enumerate(files):
         with open(file, 'rb') as f:
@@ -52,15 +52,28 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
         snr_idx = c // n_repeats
         repeat_idx = c % n_repeats
 
+        channel_true = [np.sum(data['true'][i, :]) for i in range(32)]
         # Compute relative errors as percentages
-        errors_baseline[snr_idx, repeat_idx] = (np.sum(data['estimated_baseline']) - np.sum(data['true'])) / np.sum(data['true']) * 100
-        errors_wavelet[snr_idx, repeat_idx] = (np.sum(data['estimated_wavelet']) - np.sum(data['true'])) / np.sum(data['true']) * 100
-        errors_svm[snr_idx, repeat_idx] = (np.sum(data['estimated_svm']) - np.sum(data['true'])) / np.sum(data['true']) * 100
+        try:
+            channel_base = np.array([np.sum(data['estimated_baseline'][i]) for i in range(32)]) 
+            errors_baseline[snr_idx, repeat_idx] = np.sqrt(np.mean((channel_base - channel_true)**2))
+        except:
+            pass  
+        try: 
+            channel_wave = np.array([np.sum(data['estimated_wavelet'][i]) for i in range(32)])
+            errors_wavelet[snr_idx, repeat_idx] = np.sqrt(np.mean((channel_wave - channel_true)**2))
+        except: 
+            pass 
+        try: 
+            channel_svr = data['estimated_svm']
+            errors_svm[snr_idx, repeat_idx] = np.sqrt(np.mean((channel_svr - channel_true)**2))
+        except: 
+            pass 
 
     # Calculate mean, std, and confidence intervals for each method
     def calculate_stats(errors):
-        means = np.mean(errors, axis=1)
-        stds = np.std(errors, axis=1, ddof=1)
+        means = np.nanmean(errors, axis=1)
+        stds = np.nanstd(errors, axis=1, ddof=1)
         n = errors.shape[1]
         t_value = t.ppf(0.975, df=n-1)  # 95% confidence, n-1 degrees of freedom
         cis = t_value * (stds / np.sqrt(n))
@@ -84,9 +97,9 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
     ax.set_xticks(x)
     ax.set_xticklabels([f"{snr}" for snr in snrs])
     ax.set_xlabel(r"$\alpha$ Levels")
-    ax.set_ylabel(r"Relative Error [$\%$]")
+    ax.set_ylabel(r"RMSE")
     ax.set_title("Comparison of Error for Different Methods")
-    ax.set_ylim([-100, 100])
+    ax.set_ylim([0, 90])
     ax.legend()
 
     plt.tight_layout()
