@@ -8,10 +8,11 @@ import pywt
 
 CAP_length = lambda x: len(x) if type(x) == list else 0
 
-def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, duration : int = 10, stim_freq : int = 10) -> tuple[np.ndarray, np.ndarray]:
+def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, duration : int = 10, stim_freq : int = 10, bin = True) -> tuple[np.ndarray, np.ndarray]:
     """
     Make matrices for training and testing
     """
+    # get the number of caps 
     num_channels = filtered_signal.shape[1]
     if simulator is not None:
         y = np.array(([np.sum([CAP_length(simulator.CAP_indices[i][channel]) for i in range(int(stim_freq * duration))]) 
@@ -19,12 +20,15 @@ def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, durati
     else: 
         y = np.zeros(num_channels)
 
-    X = np.zeros((num_channels, int(stim_freq * duration*2400)))
-    for channel in range(num_channels):
-        peaks, _ = find_peaks(filtered_signal[:, channel], height = 300, distance = 300000 / (stim_freq * duration) - stim_freq * duration)
-        data = bin_data(filtered_signal[:, channel], peaks)
-        X[channel] = data.ravel()
-
+    if bin: 
+        # gather data without SA
+        X = np.zeros((num_channels, int(stim_freq * duration*2400))) 
+        for channel in range(num_channels):
+            peaks, _ = find_peaks(filtered_signal[:, channel], height = 300, distance = 300000 / (stim_freq * duration) - stim_freq * duration)
+            data = bin_data(filtered_signal[:, channel], peaks)
+            X[channel] = data.ravel()
+    else: 
+        X = filtered_signal
     return X, y 
 
 def convert_to_scaleogram(signal : np.ndarray) -> np.ndarray:
@@ -40,10 +44,10 @@ def convert_to_scaleogram(signal : np.ndarray) -> np.ndarray:
 
     return X_wavelet
 
-def count_caps_svm(simulator_train : SimulateData, filtered_signal_train : np.ndarray, filtered_signal_test : np.ndarray) -> np.ndarray:
+def count_caps_svm(simulator_train : SimulateData, filtered_signal_train : np.ndarray, filtered_signal_test : np.ndarray, bin : bool = True) -> np.ndarray:
     # construct matrices
-    X_train, y_train = make_matrices(simulator_train, filtered_signal_train)
-    X_test, _ = make_matrices(None, filtered_signal_test)
+    X_train, y_train = make_matrices(simulator_train, filtered_signal_train, bin = bin)
+    X_test, _ = make_matrices(None, filtered_signal_test, bin = bin)
 
     # convert to scaleogram
     X_train = convert_to_scaleogram(X_train)

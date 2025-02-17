@@ -9,24 +9,25 @@ import pickle
 import os 
 
 
-def generate_inputs(snsr : np.ndarray, noise : np.ndarray, n_repeats : int = 10) -> list:  
+def generate_inputs(data_type : str, snsr : np.ndarray, noise : np.ndarray, n_repeats : int = 10) -> list:  
     all_inputs = []
     for n_count, n in enumerate(noise): 
         for s in snsr: 
             for count in range(n_repeats): 
-                filename = f"sim_" + str(int(s*10)) + "_" + str(n[0]) + "_" + str(n[1]) + "_" + str(n[2]) + "_" + str(n[3]) + "_" + str(count)
+                filename = f"{data_type}_" + str(int(s*10)) + "_" + str(n[0]) + "_" + str(n[1]) + "_" + str(n[2]) + "_" + str(n[3]) + "_" + str(count)
                 n_dist = n_count 
                 all_inputs.append((filename, n_dist))
 
     return all_inputs 
 
 
-def create_folders(noise_params : np.ndarray):
-    prefix = "../../../../../../../../work3/s194329/"
-    os.makedirs(prefix + "results", exist_ok=True)
+def create_folders(data_type : str, noise_params : np.ndarray):
+    prefix = "../../../../../../../../work3/s194329/"  
+    name = "results_synthetic_" + data_type
+    os.makedirs(prefix + name, exist_ok=True)
     
     for i in range(noise_params.shape[0]): 
-        os.makedirs(f"{prefix}results/noise_config_{i}", exist_ok=True)
+        os.makedirs(f"{prefix}{name}/noise_config_{i}", exist_ok=True)
 
 
 def count_true_caps(simulator : SimulateData) -> np.ndarray:
@@ -51,6 +52,7 @@ def counter(args : tuple[str, int, int]) -> None:
     
     # unpack parameters from filename 
     filename_parts = filename.split("_")
+    data_type = filename_parts[0]
     snr = float(filename_parts[1]) / 10 
     pli = int(filename_parts[2])
     hz_500 = int(filename_parts[3])
@@ -59,8 +61,7 @@ def counter(args : tuple[str, int, int]) -> None:
     count = int(filename_parts[6])
     
     # construct save name 
-    save_name = f"../../../../../../../../work3/s194329/results/noise_config_{noise_dist}/snr_{int(snr*10)}_count_{count}.pkl"
-    # save_name = f"../../results/baseline/noise_config_{noise_dist}/snr_{int(snr*10)}_count_{count}.pkl"
+    save_name = f"../../../../../../../../work3/s194329/results_synthetic_{data_type}/noise_config_{noise_dist}/snr_{int(snr*10)}_count_{count}.pkl"
 
     if os.path.exists(save_name): 
         print(f"Skipping save_name : {save_name}")
@@ -68,7 +69,11 @@ def counter(args : tuple[str, int, int]) -> None:
 
     # make simulated data
     seed = hash(filename) % (2**32)
-    simulator = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist="uniform", seed = seed)
+    if data_type == "stim":
+        simulator = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist="uniform", seed = seed)
+    else: 
+        simulator = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist=None, seed = seed)
+    
     simulator.construct_signal()
 
     # filter signal 
@@ -82,7 +87,11 @@ def counter(args : tuple[str, int, int]) -> None:
 
     # make new instance of simulator for SVM to train 
     print("svm")
-    simulator_train = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist="uniform", seed = seed-1)
+    if data_type == "stim":
+        simulator_train = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist="uniform", seed = seed-1)
+    else: 
+        simulator_train = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist=None, seed = seed-1)
+        
     simulator_train.construct_signal()
     filtered_signal_train, _ = filter(simulator_train.signal)
     estimated_caps_svm = count_caps_svm(simulator_train, filtered_signal_train, filtered_signal)
@@ -96,9 +105,6 @@ def counter(args : tuple[str, int, int]) -> None:
     d['estimated_wavelet'] = estimated_caps_wavelet 
     d['estimated_svm'] = estimated_caps_svm  
     d['true'] = true_caps
-    # d['obs_signal'] = simulator.signal 
-    # d['true_signal'] = simulator.true_signal
-    # d['filtered_signal'] = filtered_signal
 
     # save files 
     print(f"saving {save_name}")
@@ -116,24 +122,22 @@ def count_all(all_snrs : np.ndarray, noise : np.ndarray, n_repeats : int):
         # Process 2D and 3D data
         result = pool.map(counter, inputs) 
     
-    # pool = Pool(processes=2)
-    # pool.map(counter, inputs)
 
 if __name__ == "__main__":
-    all_snrs = np.r_[0.1, np.arange(1, 11)]
+    all_snrs = np.r_[0.1, np.arange(1, 7)]
     noise_params = np.array([[200, 1, 10, 20]]) 
                             # [300, 1, 10, 20], 
                             # [200, 50, 10, 20], 
                             # [200, 1, 30, 20],
                             # [200, 1, 10, 40]])
     n_repeats = 30 
+    data_type = "stim"
      
     # create folders to save results to 
-    create_folders(noise_params)
+    create_folders(data_type, noise_params)
 
     # change directory
     os.chdir("src/data")
 
     # run the counting 
     count_all(all_snrs, noise_params, n_repeats)
-
