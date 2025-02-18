@@ -1,16 +1,16 @@
 from src.model.robust_ntf.robust_ntf import robust_ntf
 from tensorly.tenalg import outer
 import numpy as np 
-import torch 
+
 
 def clean_scalograms(scalograms : np.ndarray) -> np.ndarray:
     # convert to torch tensor
     scalograms_torch = torch.tensor(scalograms)
 
     # define parameters 
-    rank = 91 
+    rank = 50 
     beta = 1
-    reg_val = 30
+    reg_val = 3
     tol = 1e-3
 
     # run robust NTF
