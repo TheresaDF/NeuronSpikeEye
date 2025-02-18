@@ -35,16 +35,6 @@ def freq_to_time(yf):
     ifft_data = ifft(yf)
     return ifft_data
 
-def get_acf_coefficients(coefficients : np.ndarray) -> float:
-    """
-    Function to compute the acf of the signal
-    """
-    all_acfs = np.zeros(coefficients.shape[0])
-    for scale in range(coefficients.shape[0]): 
-        acf_signal_tmp = acf(coefficients[scale], nlags=10*30)
-        all_acfs[scale] = acf_signal_tmp[10*30]
-
-    return all_acfs
 
 def perform_ICA(data, n_components = 32):
     """
