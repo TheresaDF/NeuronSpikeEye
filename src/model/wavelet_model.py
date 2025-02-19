@@ -1,12 +1,12 @@
 from src.data.preprocess_utils import bin_data
+from statsmodels.tsa.stattools import acf
 from scipy.signal import find_peaks
 import TensorFox as tfx 
 from tqdm import tqdm
 import numpy as np 
 import pywt 
 
-
-def reconstruct_tensor(factors):
+def reconstruct_tensor(factors, idx):
     A, B, C = factors  # Unpack factor matrices
     R = A.shape[1]  # Rank of the decomposition
 
@@ -15,19 +15,33 @@ def reconstruct_tensor(factors):
 
     # Sum over rank components
     for r in range(R):
+        if r in idx: 
+            continue
         X_reconstructed += np.outer(A[:, r], B[:, r])[:, :, None] * C[:, r][None, None, :]
 
     return X_reconstructed
 
-def clean_scalograms(scalograms : np.ndarray) -> np.ndarray:
-    # define parameters 
-    rank = 80 
+def get_acf_factor(factors: np.ndarray, rank : int) -> np.ndarray: 
+    all_acfs = np.zeros(rank)
+    for i in range(rank):
+        acf_tmp = acf(factors[2][:, i], nlags = 600)
+        all_acfs[i] = acf_tmp[-1]
 
+    return all_acfs
+
+
+def clean_scalograms(scalograms : np.ndarray, rank : int = 30) -> np.ndarray:
     # run CPD 
     factors, _ = tfx.cpd(scalograms, rank)
 
+    # get acf factors
+    acf_factors = get_acf_factor(factors, rank)
+
+    # take those with acf higher than 0.5
+    idx = np.where(acf_factors > 0.5)[0]
+
     # Reconstruct
-    rntf_recon = reconstruct_tensor(factors)
+    rntf_recon = reconstruct_tensor(factors, idx)
 
     return rntf_recon
 
