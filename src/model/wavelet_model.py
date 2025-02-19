@@ -1,11 +1,35 @@
 from src.data.preprocess_utils import bin_data
-from src.model.robust_ntf.clean_scalogram import clean_scalograms 
-from skimage.morphology import binary_erosion
 from scipy.signal import find_peaks
+import TensorFox as tfx 
 from tqdm import tqdm
 import numpy as np 
 import pywt 
 
+
+def reconstruct_tensor(factors):
+    A, B, C = factors  # Unpack factor matrices
+    R = A.shape[1]  # Rank of the decomposition
+
+    # Initialize tensor with zeros
+    X_reconstructed = np.zeros((A.shape[0], B.shape[0], C.shape[0]))
+
+    # Sum over rank components
+    for r in range(R):
+        X_reconstructed += np.outer(A[:, r], B[:, r])[:, :, None] * C[:, r][None, None, :]
+
+    return X_reconstructed
+
+def clean_scalograms(scalograms : np.ndarray) -> np.ndarray:
+    # define parameters 
+    rank = 80 
+
+    # run CPD 
+    factors, _ = tfx.cpd(scalograms, rank)
+
+    # Reconstruct
+    rntf_recon = reconstruct_tensor(factors)
+
+    return rntf_recon
 
 def get_accepted_coefficients(coefficients : np.ndarray, scales : np.ndarray, ratio : float) -> tuple[np.ndarray, np.ndarray]:
     accepted_coefficients = np.zeros_like(coefficients)
