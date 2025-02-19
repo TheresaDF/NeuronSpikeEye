@@ -3,9 +3,6 @@ import numpy as np
 
 
 def clean_scalograms(scalograms : np.ndarray) -> np.ndarray:
-    # convert to torch tensor
-    scalograms_torch = torch.tensor(scalograms)
-
     # define parameters 
     rank = 50 
     beta = 1
