@@ -10,5 +10,4 @@ scikit-learn >= 1.5.2
 scikit-image>=0.25.0 
 PyWavelets>=1.8.0
 statsmodels>=0.14.4 
-torch 
-tensorly 
+TensorFox 
