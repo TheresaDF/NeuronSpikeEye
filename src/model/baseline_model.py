@@ -30,7 +30,7 @@ def count_caps_baseline(orig_signal : np.ndarray, filtered_signal : np.ndarray, 
 
                 # save results 
                 if bin_idx == 100: 
-                    all_est_counts[channel, bin_idx] = all_est_counts[channel, bin_idx] + len(peaks_p) + len(peaks_m)
+                    all_est_counts[channel, bin_idx-1] = all_est_counts[channel, bin_idx-1] + len(peaks_p) + len(peaks_m)
                 else: 
                     all_est_counts[channel, bin_idx] = len(peaks_p) + len(peaks_m)
 
