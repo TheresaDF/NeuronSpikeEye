@@ -161,7 +161,7 @@ def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, d
             bins = bin_data(filtered_signal[:, channel], peaks).T 
 
             # loop over all bins
-            for bin_idx in range(bins.shape[1]):
+            for bin_idx in range(int(stim_freq * duration)):
                 # apply wavelet transform
                 coefficients, _ = pywt.cwt(bins[:, bin_idx], scales=np.arange(1, 128), wavelet='cgau1', sampling_period=1/30000)
 
@@ -178,7 +178,7 @@ def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, d
             spike_indicators = get_spike_indicators(accepted_coefficients)
 
             # merge and parse the spikes
-            TE = parse(spike_indicators, fs=30, width=(3, 9))
+            TE = parse(spike_indicators, fs=30, width=(1, 9))
 
             # save the number of estimates caps
             all_est_counts[channel, i] = len(TE)
