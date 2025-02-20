@@ -73,7 +73,6 @@ def bin_data(channel, peaks):
     for c, peak in enumerate(peaks):
         if (c == len(peaks)-1) & (peak+2700 > len(channel)):
             num_points = int(min(len(channel) - peak, 2400))
-            print(num_points)
             binned_data[c, :num_points] = channel[peak:peak + num_points]
         else: 
             binned_data[c] = channel[peak+300:peak+2700]
