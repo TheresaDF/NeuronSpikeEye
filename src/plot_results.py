@@ -91,7 +91,7 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
 
     ax.errorbar(x - offset, baseline_mean, yerr=baseline_ci, fmt='o', label='Baseline', color='darkblue', capsize=5)
     ax.errorbar(x, wavelet_mean, yerr=wavelet_ci, fmt='o', label='Wavelet', color='pink', capsize=5)
-    ax.errorbar(x + offset, svm_mean, yerr=svm_ci, fmt='o', label='SVM', color='darkred', capsize=5)
+    ax.errorbar(x + offset, svm_mean, yerr=svm_ci, fmt='o', label='SVR', color='darkred', capsize=5)
 
     # Add labels and legend
     ax.set_xticks(x)
@@ -99,7 +99,7 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
     ax.set_xlabel(r"$\alpha$ Levels")
     ax.set_ylabel(r"RMSE")
     ax.set_title("Comparison of Error for Different Methods")
-    ax.set_ylim([0, 150])
+    ax.set_ylim([0, 120])
     ax.legend()
 
     plt.tight_layout()
@@ -114,7 +114,7 @@ def generate_plots(path, n_repeats : int = 5, snrs : list = [0.1, 0.5, 1, 1.5, 2
     for noise in noise_dist:
         fig = plot_results(path + noise, n_repeats = n_repeats, snrs = snrs)
         name = "noise_" + noise
-        savefig(fig, name)
+        savefig(fig, name, width = 5.5, height = 2.5)
 
 if __name__ == "__main__": 
     data_type = "synthetic"
