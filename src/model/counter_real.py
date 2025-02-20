@@ -80,14 +80,15 @@ def flatten(l: list) -> list:
     return [subsublist for sublist in l for subsublist in sublist]
 
 if __name__ == "__main__":
+    # specify data type 
+    data_type = "stim" # ttx or stim
+
     # create folders to save results to 
-    create_folders()
+    create_folders(data_type)
 
     # change directory
     os.chdir("src/data")
 
-    # specify data type 
-    data_type = "spon" # ttx or stim
 
     # create paths 
     if data_type == "spon": 
