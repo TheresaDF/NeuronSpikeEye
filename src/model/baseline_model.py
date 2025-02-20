@@ -12,7 +12,7 @@ def count_caps_baseline(orig_signal : np.ndarray, filtered_signal : np.ndarray, 
     num_channels = filtered_signal.shape[1]
 
     # allocate memory for the counts
-    all_est_counts = np.zeros((num_channels, int(duration * stim_freq))) if bin else np.zeros((num_channels, 1))
+    all_est_counts = np.zeros((num_channels, bins.shape[1])) if bin else np.zeros((num_channels, 1))
 
     # loop over all channels
     for channel in tqdm(range(num_channels)):
