@@ -72,12 +72,13 @@ def bin_data(channel, peaks):
     binned_data = np.zeros((len(peaks), 2400))
     for c, peak in enumerate(peaks):
         if (c == len(peaks)-1) & (peak+2700 > len(channel)):
-            binned_data[c, :len(channel) - peak] = channel[peak:]
+            num_points = int(min(len(channel) - peak, 2400))
+            print(num_points)
+            binned_data[c, :num_points] = channel[peak:peak + num_points]
         else: 
             binned_data[c] = channel[peak+300:peak+2700]
     
     return binned_data
-
 
 def find_bad_channels(data : np.ndarray, peaks : np.ndarray, n_comp : int, bin : bool = True) -> tuple[int, float]:
     """ Function to find bad channels using ICA"""
