@@ -69,10 +69,9 @@ def bin_data(channel, peaks):
     """
     Bin data into 80ms bins
     """
-    binned_data = np.zeros((100, 2400))
+    binned_data = np.zeros((len(peaks), 2400))
     for c, peak in enumerate(peaks):
-        if c == 100: break 
-        if (c == 99) & (peak+2700 > len(channel)):
+        if (c == len(peaks)-1) & (peak+2700 > len(channel)):
             binned_data[c, :len(channel) - peak] = channel[peak:]
         else: 
             binned_data[c] = channel[peak+300:peak+2700]
