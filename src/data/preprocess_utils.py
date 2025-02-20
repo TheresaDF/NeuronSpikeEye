@@ -162,7 +162,7 @@ def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, durat
         
     # remove broken channels
     data_filtered = np.delete(data_filtered, idx, axis = 1)
-    acf_signal = get_acf_signal(data_filtered, stim_freq = stim_freq, length = length, duration = duration)
+    acf_signal = get_acf_signal(data_filtered, stim_freq = stim_freq, length = length, duration = duration, bin = bin)
 
     print(f"Original ACF : {acf_signal}")
     
