@@ -12,7 +12,7 @@ def count_caps_baseline(orig_signal : np.ndarray, filtered_signal : np.ndarray, 
     num_channels = filtered_signal.shape[1]
 
     # allocate memory for the counts
-    all_est_counts = np.zeros((num_channels, bins.shape[1])) if bin else np.zeros((num_channels, 1))
+    all_est_counts = np.zeros((num_channels, int(duration * stim_freq))) if bin else np.zeros((num_channels, 1))
 
     # loop over all channels
     for channel in tqdm(range(num_channels)):
@@ -29,7 +29,10 @@ def count_caps_baseline(orig_signal : np.ndarray, filtered_signal : np.ndarray, 
                 peaks_m, _ = find_peaks(-bins[:, bin_idx], height = 4.5*rms, distance = 30)
 
                 # save results 
-                all_est_counts[channel, bin_idx] = len(peaks_p) + len(peaks_m)
+                if bin_idx == 100: 
+                    all_est_counts[channel, bin_idx] = all_est_counts[channel, bin_idx] + len(peaks_p) + len(peaks_m)
+                else: 
+                    all_est_counts[channel, bin_idx] = len(peaks_p) + len(peaks_m)
 
         # if spontaneous channel 
         else: 
