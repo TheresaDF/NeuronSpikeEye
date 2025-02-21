@@ -1,13 +1,12 @@
 from matplotlib import pyplot as plt 
-from scipy.stats import t
 import seaborn as sns 
 import numpy as np
 import glob 
 import pickle
 import os  
+import pandas as pd
 
 sns.set_theme()
-
 
 rcParams = {
     "font.family": "serif",  # use serif/main font for text elements
@@ -24,7 +23,6 @@ rcParams = {
     "pgf.preamble": "\n".join([
         r"\usepackage{url}",            # load additional packages
         r"\usepackage{amsmath,amssymb}",   # unicode math setup
-        #  r"\setmainfont{DejaVu Serif}",  # serif font via preamble
     ])
 }
 plt.rcParams.update(rcParams)
@@ -36,89 +34,64 @@ def savefig(fig, name, width=6, height=3):
     fig.savefig(figdir + name + ".pdf", bbox_inches='tight')
 
 
-
 def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int = 5):
     files = sorted(glob.glob(path + '/*.pkl'), key=len)
-
-    num_snrs = len(snrs)
-    errors_baseline = np.zeros((num_snrs, n_repeats)); errors_baseline[:] = np.nan 
-    errors_wavelet = np.zeros((num_snrs, n_repeats));  errors_wavelet[:] = np.nan 
-    errors_svm = np.zeros((num_snrs, n_repeats));      errors_svm[:] = np.nan 
+    
+    data_list = []
 
     for c, file in enumerate(files):
         with open(file, 'rb') as f:
             data = pickle.load(f)
 
         snr_idx = c // n_repeats
-        repeat_idx = c % n_repeats
+        snr_value = snrs[snr_idx]
 
-        channel_true = [np.sum(data['true'][i, :]) for i in range(32)]
-        # Compute relative errors as percentages
-        try:
-            channel_base = np.array([np.sum(data['estimated_baseline'][i]) for i in range(32)]) 
-            errors_baseline[snr_idx, repeat_idx] = np.sqrt(np.mean((channel_base - channel_true)**2))
-        except:
-            pass  
-        try: 
-            channel_wave = np.array([np.sum(data['estimated_wavelet'][i]) for i in range(32)])
-            errors_wavelet[snr_idx, repeat_idx] = np.sqrt(np.mean((channel_wave - channel_true)**2))
-        except: 
-            pass 
-        try: 
-            channel_svr = data['estimated_svm']
-            errors_svm[snr_idx, repeat_idx] = np.sqrt(np.mean((channel_svr - channel_true)**2))
-        except: 
-            pass 
+        channel_true = np.array([np.sum(data['true'][i, :]) for i in range(32)])
 
-    # Calculate mean, std, and confidence intervals for each method
-    def calculate_stats(errors):
-        means = np.nanmean(errors, axis=1)
-        stds = np.nanstd(errors, axis=1, ddof=1)
-        n = errors.shape[1]
-        t_value = t.ppf(0.975, df=n-1)  # 95% confidence, n-1 degrees of freedom
-        cis = t_value * (stds / np.sqrt(n))
-        return means, cis
-
-    baseline_mean, baseline_ci = calculate_stats(errors_baseline)
-    wavelet_mean, wavelet_ci = calculate_stats(errors_wavelet)
-    svm_mean, svm_ci = calculate_stats(errors_svm)
-
-    # Plot scatter with error bars (confidence intervals)
-    x = np.arange(len(snrs))  # the label locations
+        for method in ['Threshold', 'Wavelet', 'SVR']:
+            try:
+                if method == 'Threshold':
+                    channel_est = np.array([np.sum(data['estimated_baseline'][i]) for i in range(32)])
+                elif method == 'Wavelet':
+                    channel_est = np.array([np.sum(data['estimated_wavelet'][i]) for i in range(32)])
+                elif method == 'SVR':
+                    channel_est = data['estimated_svm']
+                
+                error = channel_est - channel_true
+                for val in error:
+                    data_list.append({"SNR": snr_value, "Error": val, "Method": method.capitalize()})
+            except:
+                pass
+    
+    df = pd.DataFrame(data_list)
+    
     fig, ax = plt.subplots(figsize=(10, 6))
-
-    offset = 0.1  # Offset for separating dots
-
-    ax.errorbar(x - offset, baseline_mean, yerr=baseline_ci, fmt='o', label='Baseline', color='darkblue', capsize=5)
-    ax.errorbar(x, wavelet_mean, yerr=wavelet_ci, fmt='o', label='Wavelet', color='pink', capsize=5)
-    ax.errorbar(x + offset, svm_mean, yerr=svm_ci, fmt='o', label='SVR', color='darkred', capsize=5)
-
-    # Add labels and legend
-    ax.set_xticks(x)
-    ax.set_xticklabels([f"{snr}" for snr in snrs])
+    sns.violinplot(data=df, x="SNR", y="Error", hue="Method", split=False, inner="quart", palette=[[0.969, 0.733, 0.694], [0.91 , 0.247, 0.282], [0.475, 0.137, 0.557]], ax=ax)
+    
     ax.set_xlabel(r"$\alpha$ Levels")
-    ax.set_ylabel(r"RMSE")
+    ax.set_ylabel("Difference (Estimation - True)")
     ax.set_title("Comparison of Error for Different Methods")
-    ax.set_ylim([0, 120])
     ax.legend()
-
+    
     plt.tight_layout()
     plt.show()
-
+    
     return fig
 
-def generate_plots(path, n_repeats : int = 5, snrs : list = [0.1, 0.5, 1, 1.5, 2]):
-    os.makedirs("results", exist_ok = True)
+
+def generate_plots(path, data_type, stim, n_repeats: int = 5, snrs: list = [0.1, 0.5, 1, 1.5, 2]):
+    os.makedirs("results", exist_ok=True)
     noise_dist = os.listdir(path)
     noise_dist = [dist for dist in noise_dist if "noise" in dist]
     for noise in noise_dist:
-        fig = plot_results(path + noise, n_repeats = n_repeats, snrs = snrs)
-        name = "noise_" + noise
-        savefig(fig, name, width = 5.5, height = 2.5)
+        fig = plot_results(path + noise, n_repeats=n_repeats, snrs=snrs)
+        name = f"{data_type}_{stim}_{noise}"
+        savefig(fig, name, width=5.5, height=3)
+
 
 if __name__ == "__main__": 
     data_type = "synthetic"
     stim = "stim"
 
-    path = f"../../../../../../work3/s194329/results_" + data_type + "_" + stim + "/"
-    generate_plots(path, n_repeats = 30, snrs = np.r_[0.1, np.arange(1, 7)])
+    path = f"results/results_" + data_type + "_" + stim + "/"
+    generate_plots(path, data_type, stim, n_repeats=30, snrs=np.r_[0.1, np.arange(1, 7)])
