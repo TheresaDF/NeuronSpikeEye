@@ -46,7 +46,7 @@ def count_caps_svm(simulator_train : SimulateData, filtered_signal_train : np.nd
     X_train, y_train = make_matrices(simulator_train, filtered_signal_train, bin = bin)
     X_test, _ = make_matrices(None, filtered_signal_test, bin = bin)
 
-    # convert to scaleogram
+    # convert to frquency
     X_train = convert_to_frequency(X_train)
     X_test = convert_to_frequency(X_test)
 
