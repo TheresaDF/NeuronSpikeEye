@@ -59,7 +59,7 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
                 
                 error = channel_est - channel_true
                 for val in error:
-                    data_list.append({"SNR": snr_value, "Error": val, "Method": method.capitalize()})
+                    data_list.append({"SNR": snr_value, "Error": val, "Method": method})
             except:
                 pass
     
