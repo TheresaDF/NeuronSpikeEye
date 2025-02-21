@@ -169,23 +169,23 @@ def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, d
                 # save the scalograms
                 scalograms[bin_idx] = np.abs(coefficients)
 
-        # clean the scalograms
-        scalograms = np.abs(clean_scalograms(scalograms))
-        for i in range(scalograms.shape[0]):
-            # get accepted coefficients
-            accepted_coefficients = get_accepted_coefficients(scalograms[i], scales=np.arange(1, 128), ratio = 0.1)
+            # clean the scalograms
+            scalograms = np.abs(clean_scalograms(scalograms))
+            for i in range(scalograms.shape[0]):
+                # get accepted coefficients
+                accepted_coefficients = get_accepted_coefficients(scalograms[i], scales=np.arange(1, 128), ratio = 0.1)
 
-            # get spike indicators 
-            spike_indicators = get_spike_indicators(accepted_coefficients)
+                # get spike indicators 
+                spike_indicators = get_spike_indicators(accepted_coefficients)
 
-            # merge and parse the spikes
-            TE = parse(spike_indicators, fs=30, width=(1, 9))
+                # merge and parse the spikes
+                TE = parse(spike_indicators, fs=30, width=(1, 9))
 
-            # save the number of estimates caps
-            if i == int(duration * stim_freq):
-                all_est_counts[channel, i-1] = all_est_counts[channel, i-1] + len(TE)
-            else: 
-                all_est_counts[channel, i] = len(TE)
+                # save the number of estimates caps
+                if i == int(duration * stim_freq):
+                    all_est_counts[channel, i-1] = all_est_counts[channel, i-1] + len(TE)
+                else: 
+                    all_est_counts[channel, i] = len(TE)
 
         # if spontaneous data 
         if not bin: 
