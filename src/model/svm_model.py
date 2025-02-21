@@ -19,7 +19,7 @@ def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, durati
     else: 
         y = np.zeros(num_channels)
 
-    if bin: 
+    if not bin: 
         # gather data without SA
         X = np.zeros((num_channels, int(stim_freq * duration*2400))) 
         for channel in range(num_channels):
