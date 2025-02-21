@@ -170,7 +170,7 @@ def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, d
                 scalograms[bin_idx] = np.abs(coefficients)
 
         # clean the scalograms
-        scalograms = clean_scalograms(scalograms)
+        scalograms = np.abs(clean_scalograms(scalograms))
         for i in range(scalograms.shape[0]):
             # get accepted coefficients
             accepted_coefficients = get_accepted_coefficients(scalograms[i], scales=np.arange(1, 128), ratio = 0.1)
