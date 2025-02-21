@@ -46,11 +46,11 @@ def counter(args : tuple[str, str]) -> None:
     print("svm")
     seed = hash(save_name) % (2**32)
     if bin: 
-        simulator_train = SimulateData(1, [200, 5, 10, 20], CAP_dist="uniform", seed = seed)
+        simulator_train = SimulateData(1, [200, 5, 10, 20], CAP_dist="uniform", seed = seed, num_channels = 32*3)
     else: 
-        simulator_train = SimulateData(1, [45, 0, 5, 10], CAP_dist=None, seed = seed)
+        simulator_train = SimulateData(1, [45, 0, 5, 10], CAP_dist=None, seed = seed, num_channels = 32*3)
     simulator_train.construct_signal()
-    filtered_signal_train, _ = filter(simulator_train.signal)
+    filtered_signal_train, _ = filter(simulator_train.signal, max_count=30)
     estimated_caps_svm = count_caps_svm(simulator_train, filtered_signal_train, filtered_signal, bin = to_bin)
 
     # get mean for mean predictor
