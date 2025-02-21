@@ -3,6 +3,7 @@ from src.model.wavelet_model import count_caps_wavelet
 from src.model.svm_model import count_caps_svm
 from src.data.create_simulated_data import SimulateData
 from src.data.preprocess_utils import filter, read_ns5_file
+from src.model.counter import count_true_caps
 from multiprocessing import Pool
 import numpy as np 
 import pickle 
@@ -52,11 +53,17 @@ def counter(args : tuple[str, str]) -> None:
     filtered_signal_train, _ = filter(simulator_train.signal)
     estimated_caps_svm = count_caps_svm(simulator_train, filtered_signal_train, filtered_signal, bin = to_bin)
 
+    # get mean for mean predictor
+    true_caps_train = count_true_caps(simulator_train)
+    mean_predict = np.mean(np.sum(true_caps_train, axis = 0)) * np.ones(simulator_train.num_channels)
+
     # save to dictionary 
     d = {}
     d['estimated_baseline'] = estimated_caps_baseline 
     d['estimated_wavelet'] = estimated_caps_wavelet 
     d['estimated_svm'] = estimated_caps_svm  
+    d['estimated_mean_predict'] = mean_predict
+
 
     # save files 
     print(f"saving {save_name}")
