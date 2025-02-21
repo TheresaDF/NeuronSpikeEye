@@ -21,8 +21,12 @@ def counter(args : tuple[str, str]) -> None:
     path, data_type = args
     
     # construct save name 
-    save_name = f"../../../../../../../../work3/s194329/results_real_{data_type}/ramp{path.split("/")[-1].split("e")[-1].split(".")[0]}.pkl"
+    if (data_type == "stim") | (data_type == "spon"): 
+        save_name = f"../../../../../../../../work3/s194329/results_real_{data_type}/ramp{path.split("/")[-1].split("e")[-1].split(".")[0]}.pkl"
+    elif data_type == "ttx": 
+        save_name = f"../../../../../../../../work3/s194329/results_real_{data_type}/eye{paths[0].split("/")[4][0]}.pkl"
 
+    
     if os.path.exists(save_name): 
         print(f"Skipping save_name : {save_name}")
         return
