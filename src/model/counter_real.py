@@ -88,7 +88,7 @@ def flatten(l: list) -> list:
 
 if __name__ == "__main__":
     # specify data type 
-    data_type = "stim" # ttx or stim
+    data_type = "ttx" # ttx or stim
 
     # create folders to save results to 
     create_folders(data_type)

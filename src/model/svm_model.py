@@ -25,7 +25,7 @@ def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, durati
         for channel in range(num_channels):
             peaks, _ = find_peaks(filtered_signal[:, channel], height = 300, distance = 300000 / (stim_freq * duration) - stim_freq * duration)
             data = bin_data(filtered_signal[:, channel], peaks)
-            X[channel] = data.ravel()
+            X[channel, :min(len(data.ravel()), int(stim_freq * duration*2400))] = data.ravel()[:int(stim_freq * duration*2400)]
     else: 
         X = filtered_signal
     return X, y 
