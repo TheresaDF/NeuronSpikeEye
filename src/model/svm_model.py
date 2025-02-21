@@ -19,7 +19,7 @@ def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, durati
     else: 
         y = np.zeros(num_channels)
 
-    if not bin: 
+    if bin: 
         # gather data without SA
         X = np.zeros((num_channels, int(stim_freq * duration*2400))) 
         for channel in range(num_channels):
@@ -27,7 +27,7 @@ def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, durati
             data = bin_data(filtered_signal[:, channel], peaks)
             X[channel, :min(len(data.ravel()), int(stim_freq * duration*2400))] = data.ravel()[:int(stim_freq * duration*2400)]
     else: 
-        X = filtered_signal
+        X = filtered_signal.T 
     return X, y 
 
 def convert_to_frequency(signal : np.ndarray) -> np.ndarray:
