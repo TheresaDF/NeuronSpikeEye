@@ -39,7 +39,7 @@ def counter(args : tuple[str, str]) -> None:
 
     # filter signal 
     print("filter signal")
-    filtered_signal, idx = filter(data)
+    filtered_signal, idx = filter(data, bin = to_bin)
 
     # count CAPS using different methods 
     print("baseline and wavelet")
@@ -54,7 +54,7 @@ def counter(args : tuple[str, str]) -> None:
     else: 
         simulator_train = SimulateData(1, [45, 0, 5, 10], CAP_dist=None, seed = seed, num_channels = 32*3)
     simulator_train.construct_signal()
-    filtered_signal_train, _ = filter(simulator_train.signal, max_count=30)
+    filtered_signal_train, _ = filter(simulator_train.signal, max_count=30, bin = to_bin)
     estimated_caps_svm = count_caps_svm(simulator_train, filtered_signal_train, filtered_signal, bin = to_bin)
 
     # get mean for mean predictor
@@ -92,7 +92,7 @@ def flatten(l: list) -> list:
 
 if __name__ == "__main__":
     # specify data type 
-    data_type = "ttx" # ttx or stim
+    data_type = "spon" # spon, ttx or stim
 
     # create folders to save results to 
     create_folders(data_type)
