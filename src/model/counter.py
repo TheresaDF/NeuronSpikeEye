@@ -102,11 +102,16 @@ def counter(args : tuple[str, int]) -> None:
     # count true CAPS
     true_caps = count_true_caps(simulator)
 
+    # get mean for mean predictor
+    true_caps_train = count_true_caps(simulator_train)
+    mean_predict = np.mean(np.sum(true_caps_train, axis = 0)) * np.ones(simulator_train.num_channels)
+
     # save to dictionary 
     d = {}
     d['estimated_baseline'] = estimated_caps_baseline 
     d['estimated_wavelet'] = estimated_caps_wavelet 
     d['estimated_svm'] = estimated_caps_svm  
+    d['estimated_mean_predict'] = mean_predict
     d['true'] = true_caps
 
     # save files 
