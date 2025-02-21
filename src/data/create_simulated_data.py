@@ -118,7 +118,7 @@ class SimulateData:
             indices = np.random.randint(0, self.length, size=activity_count)
 
             for idx in indices:
-                duration = np.random.randint(1, 4) + np.random.random()
+                duration = max(np.random.randint(0, 4) + np.random.random(), 0.5)
                 spon_act = self.get_CAP(duration) * 0.5  # Spontaneous activity scaled down
                 idx1 = max(0, idx)
                 idx2 = min(self.length, idx1 + len(spon_act))
@@ -287,7 +287,7 @@ class SimulateData:
 
                 for cap in range(len(indices)):
                     # sample a CAP 
-                    duration = np.random.randint(3, 8) + np.random.random()
+                    duration = max(np.random.randint(0, 4) + np.random.random(), 0.5)
                     CAP = self.get_CAP(duration)
 
                     # insert cap into true signal 
