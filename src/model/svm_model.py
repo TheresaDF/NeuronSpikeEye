@@ -13,7 +13,7 @@ def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, durati
     """
     # get the number of caps 
     num_channels = filtered_signal.shape[1]
-    if simulator is not None:
+    if (simulator is not None) & (simulator.CAP_indices is not None):
         y = np.array(([np.sum([CAP_length(simulator.CAP_indices[i][channel]) for i in range(int(stim_freq * duration))]) 
                     for channel in range(num_channels)])).ravel()
     else: 
@@ -54,7 +54,7 @@ def count_caps_svm(simulator_train : SimulateData, filtered_signal_train : np.nd
     X_train = X_train / np.max(X_train, axis = 1).reshape(-1, 1)
     X_test = X_test / np.max(X_test, axis = 1).reshape(-1, 1)
     y_max = np.max(y_train)
-    y_train = y_train / y_max 
+    y_train = y_train / y_max if y_max != 0 else y_train
 
     # initialize the regressor 
     regressor = SVR(kernel = "linear")
