@@ -13,7 +13,7 @@ def make_matrices(simulator : SimulateData, filtered_signal : np.ndarray, durati
     """
     # get the number of caps 
     num_channels = filtered_signal.shape[1]
-    if (simulator is not None) & (simulator.CAP_indices is not None):
+    if simulator is not None and getattr(simulator, "CAP_indices", None) is not None: 
         y = np.array(([np.sum([CAP_length(simulator.CAP_indices[i][channel]) for i in range(int(stim_freq * duration))]) 
                     for channel in range(num_channels)])).ravel()
     else: 
