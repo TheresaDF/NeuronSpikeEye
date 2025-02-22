@@ -297,7 +297,7 @@ class SimulateData:
                     else: 
                         self.true_signal[indices[cap]:indices[cap] + len(CAP), channel] += CAP
             
-                    # store the indices of the CAPs
+                # store the indices of the CAPs
                 self.CAP_indices[stim][channel] = indices.tolist()
 
             
@@ -315,11 +315,11 @@ class SimulateData:
         rms_noise = np.mean(self.noise_signal**2, axis=0)
 
         # add stimuli
-        if self.CAP_dist is not None: 
+        if (self.CAP_dist is not None) & (self.SNR > 0): 
             self.add_all_stimuli(); 
 
         ### true signal ###
-        if self.CAP_dist is not None:
+        if (self.CAP_dist is not None) & (self.SNR > 0):
             self.add_CAP()
 
         self.add_spontaneous_activity()
