@@ -315,14 +315,15 @@ class SimulateData:
         rms_noise = np.mean(self.noise_signal**2, axis=0)
 
         # add stimuli
-        if (self.CAP_dist is not None) & (self.SNR > 0): 
+        if self.CAP_dist is not None: 
             self.add_all_stimuli(); 
 
         ### true signal ###
         if (self.CAP_dist is not None) & (self.SNR > 0):
             self.add_CAP()
 
-        self.add_spontaneous_activity()
+        if self.SNR > 0: 
+            self.add_spontaneous_activity()
                 
         ### combine signals ###
         self.signal = np.zeros((self.length, self.num_channels))
