@@ -48,9 +48,11 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
 
         channel_true = np.array([np.sum(data['true'][i, :]) for i in range(32)])
 
-        for method in ['Threshold', 'Wavelet', 'SVR']:
+        for method in ['Mean', 'Threshold', 'Wavelet', 'SVR']:
             try:
-                if method == 'Threshold':
+                if method == 'Mean': 
+                    channel_est = np.mean(data['estimated_mean_predict'])
+                elif method == 'Threshold':
                     channel_est = np.array([np.sum(data['estimated_baseline'][i]) for i in range(32)])
                 elif method == 'Wavelet':
                     channel_est = np.array([np.sum(data['estimated_wavelet'][i]) for i in range(32)])
@@ -66,7 +68,7 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
     df = pd.DataFrame(data_list)
     
     fig, ax = plt.subplots(figsize=(10, 6))
-    sns.violinplot(data=df, x="SNR", y="Error", hue="Method", split=False, inner="quart", palette=[[0.969, 0.733, 0.694], [0.91 , 0.247, 0.282], [0.475, 0.137, 0.557]], ax=ax)
+    sns.violinplot(data=df, x="SNR", y="Error", hue="Method", split=False, inner="quart", palette=[[0.99, 0.46, 0.2 ], [0.969, 0.733, 0.694], [0.91 , 0.247, 0.282], [0.475, 0.137, 0.557]], ax=ax)
     
     ax.set_xlabel(r"$\alpha$ Levels")
     ax.set_ylabel("Difference (Estimation - True)")
