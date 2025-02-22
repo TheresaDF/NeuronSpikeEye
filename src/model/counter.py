@@ -39,11 +39,14 @@ def count_true_caps(simulator : SimulateData) -> np.ndarray:
     # allocate memory for the counts
     all_true_counts = np.zeros((simulator.num_channels, int(simulator.duration * simulator.stim_freq)))
 
-    for channel in range(simulator.num_channels):
-        for bin_idx in range(int(simulator.duration * simulator.stim_freq)):
-            all_true_counts[channel, bin_idx] = CAP_length(simulator.CAP_indices[bin_idx][channel]) 
+    if simulator.CAP_indices is None:
+        return all_true_counts
+    else: 
+        for channel in range(simulator.num_channels):
+            for bin_idx in range(int(simulator.duration * simulator.stim_freq)):
+                all_true_counts[channel, bin_idx] = CAP_length(simulator.CAP_indices[bin_idx][channel]) 
 
-    return all_true_counts
+        return all_true_counts
 
 def counter(args : tuple[str, int]) -> None: 
 
