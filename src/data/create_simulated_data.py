@@ -326,12 +326,15 @@ class SimulateData:
             self.add_spontaneous_activity()
                 
         ### combine signals ###
-        self.signal = np.zeros((self.length, self.num_channels))
-        for channel in range(self.num_channels):
-            pow_true_signal = np.sqrt(self.SNR * rms_noise[channel])
-            self.signal[:, channel] = pow_true_signal * self.true_signal[:, channel] + self.noise_signal[:, channel]
-            self.true_signal[:, channel] = pow_true_signal * self.true_signal[:, channel]
-        
+        if self.SNR == 0:
+            self.signal = self.noise_signal
+        else:
+            self.signal = np.zeros((self.length, self.num_channels))
+            for channel in range(self.num_channels):
+                pow_true_signal = np.sqrt(self.SNR * rms_noise[channel])
+                self.signal[:, channel] = pow_true_signal * self.true_signal[:, channel] + self.noise_signal[:, channel]
+                self.true_signal[:, channel] = pow_true_signal * self.true_signal[:, channel]
+            
 
 
     def plot_data(self, channel : int, xlim  : tuple[float, float] = (1, 1.1), ylim : tuple[float, float] = (-300, 300)) -> None:
