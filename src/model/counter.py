@@ -135,7 +135,7 @@ def count_all(data_type : str, all_snrs : np.ndarray, noise : np.ndarray, n_repe
     
 
 if __name__ == "__main__":
-    all_snrs = np.r_[0.1, np.arange(1, 7)]
+    all_snrs = np.array([0, 0.1, 1, 2, 3, 4])
     noise_params = np.array([[200, 1, 10, 20]]) 
                             # [300, 1, 10, 20], 
                             # [200, 50, 10, 20], 
