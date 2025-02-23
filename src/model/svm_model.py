@@ -57,7 +57,7 @@ def count_caps_svm(simulator_train : SimulateData, filtered_signal_train : np.nd
     y_train = y_train / y_max if y_max != 0 else y_train
 
     # initialize the regressor 
-    regressor = SVR(kernel = "linear")
+    regressor = SVR(kernel = "linear", C = 821, epsilon = 0.12)
 
     # train the regressor
     regressor.fit(X_train, y_train) 
