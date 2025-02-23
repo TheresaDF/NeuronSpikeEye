@@ -44,6 +44,8 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
             data = pickle.load(f)
 
         snr_idx = c // n_repeats
+        if snr_idx >= len(snrs): 
+            continue 
         snr_value = snrs[snr_idx]
 
         channel_true = np.array([np.sum(data['true'][i, :]) for i in range(32)])
@@ -97,4 +99,4 @@ if __name__ == "__main__":
 
     # path = f"results/results_" + data_type + "_" + stim + "/"
     path = f"../../../../../../work3/s194329/results_" + data_type + "_" + stim + "/"
-    generate_plots(path, data_type, stim, n_repeats=30, snrs=np.r_[0.1, np.arange(1, 7)])
+    generate_plots(path, data_type, stim, n_repeats=30, snrs=np.r_[0, 0.1, np.arange(1, 5)])
