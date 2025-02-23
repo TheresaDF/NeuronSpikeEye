@@ -30,7 +30,7 @@ def get_acf_factor(factors: np.ndarray, rank : int) -> np.ndarray:
     return all_acfs
 
 
-def clean_scalograms(scalograms : np.ndarray, rank : int = 30, acf_threshold : float = 0.5) -> np.ndarray:
+def clean_scalograms(scalograms : np.ndarray, rank : int = 80, acf_threshold : float = 0.35) -> np.ndarray:
     # run CPD 
     factors, _ = tfx.cpd(scalograms, rank)
 
