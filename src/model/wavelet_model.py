@@ -30,7 +30,7 @@ def get_acf_factor(factors: np.ndarray, rank : int) -> np.ndarray:
     return all_acfs
 
 
-def clean_scalograms(scalograms : np.ndarray, rank : int = 30) -> np.ndarray:
+def clean_scalograms(scalograms : np.ndarray, rank : int = 30, acf_threshold : float = 0.5) -> np.ndarray:
     # run CPD 
     factors, _ = tfx.cpd(scalograms, rank)
 
@@ -38,7 +38,7 @@ def clean_scalograms(scalograms : np.ndarray, rank : int = 30) -> np.ndarray:
     acf_factors = get_acf_factor(factors, rank)
 
     # take those with acf higher than 0.5
-    idx = np.where(acf_factors > 0.5)[0]
+    idx = np.where(acf_factors > acf_threshold)[0]
 
     # Reconstruct
     rntf_recon = reconstruct_tensor(factors, idx)
