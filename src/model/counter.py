@@ -126,7 +126,8 @@ def counter(args : tuple[str, int]) -> None:
 def count_all(data_type : str, all_snrs : np.ndarray, noise : np.ndarray, n_repeats : int):
     # get filenames 
     inputs = generate_inputs(data_type, all_snrs, noise, n_repeats)
-    
+    print(inputs)
+    return 
 
     # start processing all files 
     with Pool() as pool:
