@@ -84,7 +84,7 @@ def counter(args : tuple[str, int]) -> None:
 
     # filter signal 
     print("filter signal")
-    filtered_signal, _ = filter(simulator.signal)
+    filtered_signal, _ = filter(simulator.signal, bin = to_bin)
 
     # count CAPS using different methods 
     print("baseline and wavelet")
@@ -99,7 +99,7 @@ def counter(args : tuple[str, int]) -> None:
         simulator_train = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist=None, seed = seed-1, num_channels = 32*3)
         
     simulator_train.construct_signal()
-    filtered_signal_train, _ = filter(simulator_train.signal, max_count = 30)
+    filtered_signal_train, _ = filter(simulator_train.signal, max_count = 30, bin = to_bin)
     estimated_caps_svm = count_caps_svm(simulator_train, filtered_signal_train, filtered_signal, bin = to_bin)
 
     # count true CAPS
@@ -136,14 +136,15 @@ def count_all(data_type : str, all_snrs : np.ndarray, noise : np.ndarray, n_repe
     
 
 if __name__ == "__main__":
-    all_snrs = [5]
-    noise_params = np.array([[0,0,0,0]]) 
+    all_snrs = np.array([0, 0.1, 1, 2, 3, 4])
+    noise_params = np.array([[45, 0, 10, 10]]) 
+                            #[200, 1, 10, 20]
                             # [300, 1, 10, 20], 
                             # [200, 50, 10, 20], 
                             # [200, 1, 30, 20],
                             # [200, 1, 10, 40]])
     n_repeats = 30 
-    data_type = "stim"
+    data_type = "spon"
      
     # create folders to save results to 
     create_folders(data_type, noise_params)
