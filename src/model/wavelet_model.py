@@ -173,13 +173,13 @@ def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, d
             scalograms = np.abs(clean_scalograms(scalograms))
             for i in range(scalograms.shape[0]):
                 # get accepted coefficients
-                accepted_coefficients = get_accepted_coefficients(scalograms[i], scales=np.arange(1, 128), ratio = 0.1)
+                accepted_coefficients = get_accepted_coefficients(scalograms[i], scales=np.arange(1, 128), ratio = 0.3)
 
                 # get spike indicators 
                 spike_indicators = get_spike_indicators(accepted_coefficients)
 
                 # merge and parse the spikes
-                TE = parse(spike_indicators, fs=30, width=(1, 9))
+                TE = parse(spike_indicators, fs=30, width=(0.5, 5))
 
                 # save the number of estimates caps
                 if i == int(duration * stim_freq):
