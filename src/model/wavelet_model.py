@@ -193,7 +193,7 @@ def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, d
             coefficients, _= pywt.cwt(filtered_signal[:, channel], scales=np.arange(1, 128), wavelet='cgau1', sampling_period=1/30000)
             
             # get accepted coefficients
-            coefficients = get_accepted_coefficients(coefficients, scales=np.arange(1, 128), ratio = 0.1)
+            coefficients = get_accepted_coefficients(coefficients, scales=np.arange(1, 128), ratio = 0.3)
 
             # get spike indicators 
             spike_indicators = get_spike_indicators(coefficients)
