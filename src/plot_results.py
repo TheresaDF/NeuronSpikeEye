@@ -43,10 +43,13 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
         with open(file, 'rb') as f:
             data = pickle.load(f)
 
-        snr_idx = c // n_repeats
-        if snr_idx >= len(snrs): 
-            continue 
-        snr_value = snrs[snr_idx]
+        snr_value = float(file.split("/")[-1].split("_")[1]) / 10 
+        
+        # # snr_idx = np.where(float(snr_curr) == snrs)[0] 
+        # if snr_idx >= len(snrs): 
+        #     continue 
+        # snr_value = snrs[snr_idx]
+        print(snr_value)
 
         if snr_value == 0: 
             channel_true = np.zeros(32)
@@ -80,8 +83,8 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
     ax.set_ylabel("Difference (Estimation - True)")
     ax.set_title("Comparison of Error for Different Methods")
     ax.legend()
-    # ax.set_ylim([-400, 500])
-    ax.set_ylim([-120, 100]) 
+    ax.set_ylim([-400, 500])
+    # ax.set_ylim([-120, 100]) 
 
     plt.tight_layout()
     plt.show()
@@ -102,7 +105,7 @@ def generate_plots(path, data_type, stim, n_repeats: int = 5, snrs: list = [0.1,
 
 if __name__ == "__main__": 
     data_type = "synthetic"
-    stim = "spon"
+    stim = "stim"
 
     # path = f"results/results_" + data_type + "_" + stim + "/"
     path = f"../../../../../../work3/s194329/results_" + data_type + "_" + stim + "/"
