@@ -77,7 +77,7 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
     ax.set_ylabel("Difference (Estimation - True)")
     ax.set_title("Comparison of Error for Different Methods")
     ax.legend()
-    ax.set_ylim([-400, 500])
+    ax.set_ylim([-150, 350])
     # ax.set_ylim([-120, 100]) 
 
     plt.tight_layout()
