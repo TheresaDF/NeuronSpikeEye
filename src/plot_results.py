@@ -34,7 +34,7 @@ def savefig(fig, name, width=6, height=3):
     fig.savefig(figdir + name + ".pdf", bbox_inches='tight')
 
 
-def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int = 5):
+def plot_results(path: str):
     files = sorted(glob.glob(path + '/*.pkl'), key=len)
     
     data_list = []
