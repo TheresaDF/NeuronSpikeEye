@@ -48,7 +48,10 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
             continue 
         snr_value = snrs[snr_idx]
 
-        channel_true = np.array([np.sum(data['true'][i, :]) for i in range(32)])
+        if snr_value == 0: 
+            channel_true = np.zeros(32)
+        else: 
+            channel_true = np.array([np.sum(data['true'][i, :]) for i in range(32)])
 
         for method in ['Mean', 'Threshold', 'Wavelet', 'SVR']:
             try:
@@ -70,13 +73,16 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
     df = pd.DataFrame(data_list)
     
     fig, ax = plt.subplots(figsize=(10, 6))
-    sns.violinplot(data=df, x="SNR", y="Error", hue="Method", split=False, inner="quart", palette=[[0.99, 0.46, 0.2 ], [0.969, 0.733, 0.694], [0.91 , 0.247, 0.282], [0.475, 0.137, 0.557]], ax=ax)
-    
+    sns.violinplot(data=df, x="SNR", y="Error", hue="Method", split=False, inner="quart", palette=[[0.85, 0.85, 0.85], [0.969, 0.733, 0.694], [0.91 , 0.247, 0.282], [0.475, 0.137, 0.557]], ax=ax, linewidth = 0.5, cut = 0)
+    ax.vlines([0.5, 1.5, 2.5, 3.5, 4.5], ymin = -400, ymax = 500, linestyle = "dashed", color = "k", linewidth = 0.5)
+
     ax.set_xlabel(r"$\alpha$ Levels")
     ax.set_ylabel("Difference (Estimation - True)")
     ax.set_title("Comparison of Error for Different Methods")
     ax.legend()
-    
+    # ax.set_ylim([-400, 500])
+    ax.set_ylim([-120, 100]) 
+
     plt.tight_layout()
     plt.show()
     
@@ -90,13 +96,15 @@ def generate_plots(path, data_type, stim, n_repeats: int = 5, snrs: list = [0.1,
     for noise in noise_dist:
         fig = plot_results(path + noise, n_repeats=n_repeats, snrs=snrs)
         name = f"{data_type}_{stim}_{noise}"
-        savefig(fig, name, width=5.5, height=3)
+        # savefig(fig, name, width=5.5, height=3)
+        savefig(fig, name, width=6, height=2.5)
 
 
 if __name__ == "__main__": 
     data_type = "synthetic"
-    stim = "stim"
+    stim = "spon"
 
     # path = f"results/results_" + data_type + "_" + stim + "/"
     path = f"../../../../../../work3/s194329/results_" + data_type + "_" + stim + "/"
-    generate_plots(path, data_type, stim, n_repeats=30, snrs=np.r_[0, 0.1, np.arange(1, 5)])
+    snrs=np.r_[0, 0.1, np.arange(1, 5)]
+    generate_plots(path, data_type, stim, n_repeats=30, snrs = snrs)

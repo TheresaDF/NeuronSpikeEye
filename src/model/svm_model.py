@@ -40,6 +40,45 @@ def convert_to_frequency(signal : np.ndarray) -> np.ndarray:
         X_freq[i] = Sxx[f < 5000]
     return X_freq
 
+def find_hyper_parameters(X_optim, y_optim): 
+    # Objective function to minimize
+    def objective(params):
+        C, epsilon = params  # Extract parameters from the optimization
+
+        # Define the custom kernel wrapper for SVR
+        svr = SVR(kernel='linear', C=C, epsilon=epsilon)
+        
+        # Split the data 
+        X_train, X_val, y_train, y_val = train_test_split(X_optim, y_optim, test_size=0.2, random_state=42)
+        
+        # Fit and predict
+        svr.fit(X_train, y_train)
+        y_pred = svr.predict(X_val)
+        
+        # Calculate RMSE on the validation set
+        rmse_val = np.sqrt(np.mean((y_val - y_pred) ** 2))
+        
+        return rmse_val
+
+    # Define the search space 
+    search_space = [
+        Real(1e-2, 1e3, name="C"),             # Regularization parameter
+        Real(1e-3, 1e1, name="epsilon"),       # Tube size in regression
+    ]
+
+    # Run Bayesian optimization
+    results = gp_minimize(
+        func=objective,
+        dimensions=search_space,
+        n_calls=30,  # Number of function evaluations
+        random_state=42
+    )
+
+    # Best hyperparameters and RMSE
+    C = results.x[0]
+    epsilon = results.x[1]
+
+    return C, epsilon
 
 def count_caps_svm(simulator_train : SimulateData, filtered_signal_train : np.ndarray, filtered_signal_test : np.ndarray, bin : bool = True) -> np.ndarray:
     # construct matrices
@@ -56,8 +95,11 @@ def count_caps_svm(simulator_train : SimulateData, filtered_signal_train : np.nd
     y_max = np.max(y_train)
     y_train = y_train / y_max if y_max != 0 else y_train
 
+    # find optimal parameters 
+    C, epsilon = find_hyper_parameters(X_train, y_train)
+
     # initialize the regressor 
-    regressor = SVR(kernel = "linear", C = 821, epsilon = 0.12)
+    regressor = SVR(kernel = "linear", C = C, epsilon = epsilon)
 
     # train the regressor
     regressor.fit(X_train, y_train) 

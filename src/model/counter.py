@@ -75,11 +75,8 @@ def counter(args : tuple[str, int]) -> None:
 
     # make simulated data
     seed = hash(filename) % (2**32)
-    if data_type == "stim":
-        simulator = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist="uniform", seed = seed)
-    else: 
-        simulator = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist=None, seed = seed)
-    
+    CAP_dist = "uniform" if data_type == "stim" else None 
+    simulator = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist=CAP_dist, seed = seed)    
     simulator.construct_signal()
 
     # filter signal 
@@ -142,7 +139,7 @@ if __name__ == "__main__":
                             # [200, 1, 30, 20],
                             # [200, 1, 10, 40]])
     n_repeats = 30 
-    data_type = "spon"
+    data_type = "stim"
      
     # create folders to save results to 
     create_folders(data_type, noise_params)
