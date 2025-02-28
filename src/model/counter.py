@@ -90,10 +90,7 @@ def counter(args : tuple[str, int]) -> None:
 
     # make new instance of simulator for SVM to train 
     print("svm")
-    if data_type == "stim":
-        simulator_train = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist="uniform", seed = seed-1, num_channels = 32*3)
-    else: 
-        simulator_train = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist=None, seed = seed-1, num_channels = 32*3)
+    simulator_train = SimulateData(snr, [pli, hz_500, white, high_freq], CAP_dist=CAP_dist, seed = seed-1, num_channels = 32*3)
         
     simulator_train.construct_signal()
     filtered_signal_train, _ = filter(simulator_train.signal, max_count = 30, bin = to_bin)
