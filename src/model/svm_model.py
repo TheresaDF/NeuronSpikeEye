@@ -1,6 +1,9 @@
 from src.data.create_simulated_data import SimulateData
+from sklearn.model_selection import train_test_split
 from src.data.preprocess_utils import bin_data
 from scipy.signal import find_peaks, welch 
+from skopt import gp_minimize
+from skopt.space import Real 
 from sklearn.svm import SVR 
 import numpy as np
 
