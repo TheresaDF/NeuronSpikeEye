@@ -17,6 +17,8 @@ class SimulateData:
                        stim_amp : int = 6000, 
                        CAP_dist : str = "uniform", 
                        num_channels : int = 32,
+                       channel_varier_count : np.ndarray = None,
+                       channel_varier_occurrence : np.ndarray = None,
                        seed = None) -> None:
         """
         Simulate data for the project
@@ -47,8 +49,8 @@ class SimulateData:
         self.fs = 3*1e4
         self.duration = self.length // self.fs 
         self.num_stims = int(self.duration * self.stim_freq)
-        self.channel_varier_count = np.random.uniform(0.5, 7, self.num_channels)
-        self.channel_varier_occurrence = np.random.uniform(0.1, 0.9, self.num_channels)
+        self.channel_varier_count = np.random.uniform(0.5, 7, self.num_channels) if channel_varier_count is None else channel_varier_count
+        self.channel_varier_occurrence = np.random.uniform(0.1, 0.9, self.num_channels) if channel_varier_occurrence is None else channel_varier_occurrence
 
         self.signal = None 
         self.true_signal = None
