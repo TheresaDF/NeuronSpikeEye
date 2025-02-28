@@ -45,12 +45,6 @@ def plot_results(path: str, snrs: list = [0.1, 0.5, 1, 1.5, 2], n_repeats: int =
 
         snr_value = float(file.split("/")[-1].split("_")[1]) / 10 
         
-        # # snr_idx = np.where(float(snr_curr) == snrs)[0] 
-        # if snr_idx >= len(snrs): 
-        #     continue 
-        # snr_value = snrs[snr_idx]
-        print(snr_value)
-
         if snr_value == 0: 
             channel_true = np.zeros(32)
         else: 
