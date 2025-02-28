@@ -1,3 +1,7 @@
+import os 
+os.environ["TF_NUM_INTEROP_THREADS"] = "1"
+os.environ["TF_NUM_INTRAOP_THREADS"] = "1"
+
 from src.model.baseline_model import count_caps_baseline
 from src.model.wavelet_model import count_caps_wavelet
 from src.model.svm_model import count_caps_svm
@@ -6,7 +10,6 @@ from src.data.preprocess_utils import filter
 from multiprocessing import Pool
 import numpy as np 
 import pickle 
-import os 
 
 
 def generate_inputs(data_type : str, snsr : np.ndarray, noise : np.ndarray, n_repeats : int = 10) -> list:  
