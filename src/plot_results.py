@@ -76,7 +76,7 @@ def plot_results(path: str):
     ax.set_xlabel(r"$\alpha$ Levels")
     ax.set_ylabel("Difference (Estimation - True)")
     ax.set_title("Comparison of Error for Different Methods")
-    ax.legend()
+    ax.legend(loc = "upper left")
     ax.set_ylim([-150, 350])
     # ax.set_ylim([-120, 100]) 
 
@@ -86,12 +86,12 @@ def plot_results(path: str):
     return fig
 
 
-def generate_plots(path, data_type, stim, n_repeats: int = 5, snrs: list = [0.1, 0.5, 1, 1.5, 2]):
+def generate_plots(path, data_type, stim):
     os.makedirs("results", exist_ok=True)
     noise_dist = os.listdir(path)
     noise_dist = [dist for dist in noise_dist if "noise" in dist]
     for noise in noise_dist:
-        fig = plot_results(path + noise, n_repeats=n_repeats, snrs=snrs)
+        fig = plot_results(path + noise)
         name = f"{data_type}_{stim}_{noise}"
         # savefig(fig, name, width=5.5, height=3)
         savefig(fig, name, width=6, height=2.5)
@@ -99,9 +99,9 @@ def generate_plots(path, data_type, stim, n_repeats: int = 5, snrs: list = [0.1,
 
 if __name__ == "__main__": 
     data_type = "synthetic"
-    stim = "stim"
+    stim = "spon"
 
     # path = f"results/results_" + data_type + "_" + stim + "/"
     path = f"../../../../../../work3/s194329/results_" + data_type + "_" + stim + "/"
     snrs=np.r_[0, 0.1, np.arange(1, 5)]
-    generate_plots(path, data_type, stim, n_repeats=30, snrs = snrs)
+    generate_plots(path, data_type, stim)
