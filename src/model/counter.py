@@ -1,6 +1,4 @@
 import os 
-os.environ["TF_NUM_INTEROP_THREADS"] = "1"
-os.environ["TF_NUM_INTRAOP_THREADS"] = "1"
 
 from src.model.baseline_model import count_caps_baseline
 from src.model.wavelet_model import count_caps_wavelet
@@ -139,7 +137,7 @@ if __name__ == "__main__":
                             # [200, 1, 30, 20],
                             # [200, 1, 10, 40]])
     n_repeats = 30 
-    data_type = "stim"
+    data_type = "spon"
      
     # create folders to save results to 
     create_folders(data_type, noise_params)
