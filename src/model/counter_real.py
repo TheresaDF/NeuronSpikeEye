@@ -12,7 +12,8 @@ import os
 
 
 def create_folders(data_type : str) -> None:
-    prefix = "../../../../../../../../work3/s194329/"
+    # prefix = "../../../../../../../../work3/s194329/"
+    prefix = "../../results/"
     os.makedirs(prefix + f"results_real_{data_type}", exist_ok=True)
 
 def counter(args : tuple[str, str]) -> None: 
@@ -20,13 +21,15 @@ def counter(args : tuple[str, str]) -> None:
     # unpack arguments 
     path, data_type = args
     
+    # prefix = "../../../../../../../../work3/s194329/"
+    prefix = "../../results/"
     # construct save name 
     if (data_type == "stim"): 
-        save_name = f"../../../../../../../../work3/s194329/results_real_{data_type}/ramp{path.split("/")[-1].split("e")[-1].split(".")[0]}.pkl"
+        save_name = f"{prefix}results_real_{data_type}/ramp{path.split("/")[-1].split("e")[-1].split(".")[0]}.pkl"
     elif data_type == "ttx": 
-        save_name = f"../../../../../../../../work3/s194329/results_real_{data_type}/eye{path.split(" ")[1][0]}.pkl"
+        save_name = f"{prefix}results_real_{data_type}/eye{path.split(" ")[1][0]}.pkl"
     elif data_type == "spon": 
-        save_name = f"../../../../../../../../work3/s194329/results_real_{data_type}/eye{path.split("/")[5][-1]}_ramp{path.split("/")[-1].split(".")[0].split("e")[1]}.pkl"
+        save_name = f"{prefix}results_real_{data_type}/eye{path.split("/")[5][-1]}_ramp{path.split("/")[-1].split(".")[0].split("e")[1]}.pkl"
 
     
     if os.path.exists(save_name): 
@@ -51,7 +54,7 @@ def counter(args : tuple[str, str]) -> None:
     # make new instance of simulator for SVM to train 
     print("svm")
     seed = hash(save_name) % (2**32)
-    if bin: 
+    if to_bin: 
         simulator_train = SimulateData(1, [200, 5, 10, 20], CAP_dist="uniform", seed = seed, num_channels = 32*3)
     else: 
         simulator_train = SimulateData(1, [45, 0, 5, 10], CAP_dist=None, seed = seed, num_channels = 32*3)
