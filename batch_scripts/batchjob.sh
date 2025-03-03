@@ -17,11 +17,11 @@ mkdir -p "logs/"
 ### -- set the job Name --
 #BSUB -J preprocessing
 ### -- ask for number of cores (default: 1) -- 
-#BSUB -n 12 
+#BSUB -n 32 
 ### -- set walltime limit: hh:mm --  maximum 24 hours for GPU-queues right now 
-#BSUB -W 23:00
+#BSUB -W 1:00 
 ### -- request 10GB of system-memory --
-#BSUB -R "rusage[mem=7GB]"
+#BSUB -R "rusage[mem=5GB]"
 ### -- set the email address --
 ##BSUB -u s194329@student.dtu.dk
 ### -- send notification at start --
@@ -38,4 +38,4 @@ mkdir -p "logs/"
 source neuron_spike/bin/activate 
 
 # run scripts
-python src/model/baseline_counter.py
+python src/model/counter_real.py
