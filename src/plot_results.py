@@ -76,9 +76,9 @@ def plot_results(path: str):
     ax.set_xlabel(r"$\alpha$ Levels")
     ax.set_ylabel("Difference (Estimation - True)")
     ax.set_title("Comparison of Error for Different Methods")
-    ax.legend(loc = "upper left")
-    ax.set_ylim([-150, 350])
-    # ax.set_ylim([-120, 100]) 
+    ax.legend(loc = "lower left")
+    # ax.set_ylim([-150, 350])
+    ax.set_ylim([-75, 50]) 
 
     plt.tight_layout()
     plt.show()
@@ -94,7 +94,7 @@ def generate_plots(path, data_type, stim):
         fig = plot_results(path + noise)
         name = f"{data_type}_{stim}_{noise}"
         # savefig(fig, name, width=5.5, height=3)
-        savefig(fig, name, width=6, height=2.5)
+        savefig(fig, name, width=6, height=2)
 
 
 if __name__ == "__main__": 
