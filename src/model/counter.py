@@ -1,6 +1,4 @@
 import os 
-os.environ["TF_NUM_INTEROP_THREADS"] = "1"
-os.environ["TF_NUM_INTRAOP_THREADS"] = "1"
 
 from src.model.baseline_model import count_caps_baseline
 from src.model.wavelet_model import count_caps_wavelet
@@ -132,14 +130,14 @@ def count_all(data_type : str, all_snrs : np.ndarray, noise : np.ndarray, n_repe
 
 if __name__ == "__main__":
     all_snrs = np.array([0, 0.1, 1, 2, 3, 4])
-    noise_params = np.array([[200, 1, 10, 20]]) 
+    noise_params = np.array([[45, 0, 10, 20]]) 
                             #[45, 0, 10, 20]
                             # [300, 1, 10, 20], 
                             # [200, 50, 10, 20], 
                             # [200, 1, 30, 20],
                             # [200, 1, 10, 40]])
     n_repeats = 30 
-    data_type = "stim"
+    data_type = "spon"
      
     # create folders to save results to 
     create_folders(data_type, noise_params)
