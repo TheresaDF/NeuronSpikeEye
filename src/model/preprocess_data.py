@@ -60,7 +60,9 @@ def filter_single(args : tuple[str, int]) -> None:
     print("filter signal")
     filtered_signal, _ = filter(simulator.signal, bin = to_bin)
 
-
+    d = {}
+    d['filt_signal'] = filtered_signal
+    
     print(f"saving {save_name}")
     with open(save_name, 'wb') as output_file: 
         pickle.dump(d, output_file)

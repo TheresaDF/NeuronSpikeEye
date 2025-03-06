@@ -8,7 +8,8 @@ def run_wavelet(files, save_path):
         with open(file, 'rb') as f:
             data = pickle.load(f)
 
-        all_est_counts = count_caps_wavelet(data, data)
+        filtered_signal = data['filt_signal']
+        all_est_counts = count_caps_wavelet(filtered_signal, filtered_signal)
 
         d = {}
         d['wavelet_res'] = all_est_counts
