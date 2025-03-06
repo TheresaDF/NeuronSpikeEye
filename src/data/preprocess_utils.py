@@ -174,7 +174,10 @@ def filter(data : np.ndarray, stim_freq : int = 10, length : int = 300000, durat
     # start loop 
     while (ratio > threshold) & (count < max_count):
         # perform ICA
-        ica, ica_components = perform_ICA(data_filtered, n_comp)
+        try: 
+            ica, ica_components = perform_ICA(data_filtered, n_comp)
+        except: 
+            return data_filtered, idx 
 
         # find worst 59 hz component 
         bad_component, acf_curr = find_bad_channels(ica_components, peaks, n_comp=n_comp, bin = bin)
