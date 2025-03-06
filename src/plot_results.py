@@ -77,8 +77,8 @@ def plot_results(path: str):
     ax.set_ylabel("Difference (Estimation - True)")
     ax.set_title("Comparison of Error for Different Methods")
     ax.legend(loc = "lower left")
-    # ax.set_ylim([-150, 350])
-    ax.set_ylim([-75, 50]) 
+    ax.set_ylim([-200, 200])
+    # ax.set_ylim([-75, 50]) 
 
     plt.tight_layout()
     plt.show()
@@ -99,7 +99,7 @@ def generate_plots(path, data_type, stim):
 
 if __name__ == "__main__": 
     data_type = "synthetic"
-    stim = "spon"
+    stim = "stim"
 
     # path = f"results/results_" + data_type + "_" + stim + "/"
     path = f"../../../../../../work3/s194329/results_" + data_type + "_" + stim + "/"
