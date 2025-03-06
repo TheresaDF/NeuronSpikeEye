@@ -144,7 +144,7 @@ def parse(spike_indicators : np.ndarray, fs : int, width : tuple):
 
     
 
-def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, duration : int = 10, stim_freq : int = 10, bin : bool = True) -> np.ndarray:
+def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, duration : int = 10, stim_freq : int = 10, bin : bool = True, ratio : float = 0.2) -> np.ndarray:
     """ Function that estimates the number of CAPs in the signal """
     # get number of channels 
     num_channels = filtered_signal.shape[1]
@@ -173,7 +173,7 @@ def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, d
             scalograms = np.abs(clean_scalograms(scalograms))
             for i in range(scalograms.shape[0]):
                 # get accepted coefficients
-                accepted_coefficients = get_accepted_coefficients(scalograms[i], scales=np.arange(1, 128), ratio = 0.5)
+                accepted_coefficients = get_accepted_coefficients(scalograms[i], scales=np.arange(1, 128), ratio = ratio)
 
                 # get spike indicators 
                 spike_indicators = get_spike_indicators(accepted_coefficients)
@@ -193,7 +193,7 @@ def count_caps_wavelet(orig_signal : np.ndarray, filtered_signal : np.ndarray, d
             coefficients, _= pywt.cwt(filtered_signal[:, channel], scales=np.arange(1, 128), wavelet='cgau1', sampling_period=1/30000)
             
             # get accepted coefficients
-            coefficients = get_accepted_coefficients(coefficients, scales=np.arange(1, 128), ratio = 0.5)
+            coefficients = get_accepted_coefficients(coefficients, scales=np.arange(1, 128), ratio = ratio)
 
             # get spike indicators 
             spike_indicators = get_spike_indicators(coefficients)
