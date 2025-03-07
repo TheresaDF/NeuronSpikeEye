@@ -72,7 +72,9 @@ class SimulateData:
         """Add various noise components to the signal."""
         self.add_noise("noise_files_sim_data/pli.npy", self.noise_params[0])
         self.add_noise("noise_files_sim_data/500_Hz.npy", self.noise_params[1])
-        self.add_noise("noise_files_sim_data/high_freq.npy", self.noise_params[3])
+        
+        if self.CAP_dist is not None:
+            self.add_noise("noise_files_sim_data/high_freq.npy", self.noise_params[3])
 
         for channel in range(self.num_channels):
             self.noise_signal[:, channel] += np.random.normal(0, self.noise_params[2], self.length)
